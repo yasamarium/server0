@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>AURORA Login</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background: #000;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: #fff;
+}
+
+.app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a0a14 50%, #0a0a0a 100%);
+  overflow: hidden;
+}
+
+canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Login Container */
+.login-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, 90vw);
+  padding: 48px 36px;
+  background: rgba(20, 20, 20, 0.75);
+  backdrop-filter: blur(20px) saturate(1.4);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 105, 180, 0.15);
+  box-shadow: 0 20px 80px rgba(255, 105, 180, 0.25), 0 0 100px rgba(138, 43, 226, 0.15);
+  z-index: 100;
+  transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.login-container.blur {
+  filter: blur(12px);
+  pointer-events: none;
+}
+
+.login-container.exploding {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1.2);
+  pointer-events: none;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 150;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-overlay.active {
+  display: flex;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid rgba(255, 105, 180, 0.2);
+  border-top-color: #ff69b4;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: #ff69b4;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo h1 {
+  font-size: 38px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #ff69b4 0%, #ff1493 50%, #c71585 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+  text-shadow: 0 0 30px rgba(255, 105, 180, 0.4);
+}
+
+.logo p {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 8px;
+  letter-spacing: 1px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 16px 18px;
+  background: rgba(30, 30, 30, 0.6);
+  border: 1.5px solid rgba(255, 105, 180, 0.2);
+  border-radius: 14px;
+  color: #fff;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-group input:focus {
+  border-color: #ff69b4;
+  background: rgba(30, 30, 30, 0.8);
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 20px;
+  transition: color 0.3s ease;
+  padding: 4px;
+}
+
+.password-toggle:hover {
+  color: #ff69b4;
+}
+
+.error-message {
+  color: #ff4757;
+  font-size: 12px;
+  margin-top: 8px;
+  display: none;
+  animation: shake 0.4s ease;
+}
+
+.error-message.show {
+  display: block;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+.login-btn {
+  width: 100%;
+  padding: 18px;
+  background: linear-gradient(135deg, #ff69b4 0%, #ff1493 100%);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(255, 105, 180, 0.4);
+  margin-top: 8px;
+}
+
+.login-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(255, 105, 180, 0.5);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+#particleCanvas {
+  display: none;
+  z-index: 200;
+}
+
+#particleCanvas.active {
+  display: block;
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 36px 28px;
+  }
+  
+  .logo h1 {
+    font-size: 32px;
+  }
+}
+</style>
+</head>
+<body>
+  <div class="app">
+    <canvas id="bgCanvas"></canvas>
+    <canvas id="particleCanvas"></canvas>
+    
+    <div class="login-container" id="loginContainer">
+      <div class="logo">
+        <h1>AURORA</h1>
+        <p>Enter your credentials</p>
+      </div>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input 
+            type="text" 
+            id="username" 
+            name="username" 
+            placeholder="Enter username"
+            autocomplete="username"
+            required
+          />
+          <div class="error-message" id="usernameError"></div>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              placeholder="Enter password"
+              autocomplete="current-password"
+              required
+            />
+            <button type="button" class="password-toggle" id="passwordToggle">
+              👁️
+            </button>
+          </div>
+          <div class="error-message" id="passwordError"></div>
+        </div>
+        
+        <button type="submit" class="login-btn">LOGIN</button>
+      </form>
+    </div>
+    
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Authenticating...</div>
+    </div>
+  </div>
+
+<script>
+const VALID_USERS = {
+  'AS': 'aurora#15+x=50@ever',
+  'MRIG': 'nevermrig#19@ever',
+  'PRAGYAN': 'paroparo#8080@404',
+  'PRITHI': 'prithi#nexttopper@www'
+};
+
+/* Background canvas */
+const bgCanvas = document.getElementById('bgCanvas');
+const bgCtx = bgCanvas.getContext('2d');
+let bgDPR = Math.max(1, window.devicePixelRatio || 1);
+
+function setBgSize() {
+  bgDPR = Math.max(1, window.devicePixelRatio || 1);
+  bgCanvas.width = Math.floor(window.innerWidth * bgDPR);
+  bgCanvas.height = Math.floor(window.innerHeight * bgDPR);
+  bgCanvas.style.width = window.innerWidth + 'px';
+  bgCanvas.style.height = window.innerHeight + 'px';
+  bgCtx.setTransform(bgDPR, 0, 0, bgDPR, 0, 0);
+}
+setBgSize();
+
+const bgParticles = [];
+const BG_PARTICLE_COUNT = 60;
+
+for (let i = 0; i < BG_PARTICLE_COUNT; i++) {
+  bgParticles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    size: Math.random() * 1.2 + 0.3,
+    speedX: (Math.random() - 0.5) * 0.2,
+    speedY: (Math.random() - 0.5) * 0.2,
+    opacity: Math.random() * 0.3 + 0.1
+  });
+}
+
+function animateBg() {
+  bgCtx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+  bgCtx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  
+  for (let p of bgParticles) {
+    p.x += p.speedX;
+    p.y += p.speedY;
+    
+    if (p.x < 0) p.x = window.innerWidth;
+    if (p.x > window.innerWidth) p.x = 0;
+    if (p.y < 0) p.y = window.innerHeight;
+    if (p.y > window.innerHeight) p.y = 0;
+    
+    bgCtx.beginPath();
+    bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(255, 105, 180, ${p.opacity})`;
+    bgCtx.fill();
+  }
+  
+  requestAnimationFrame(animateBg);
+}
+animateBg();
+
+window.addEventListener('resize', setBgSize);
+
+/* Password toggle */
+const passwordInput = document.getElementById('password');
+const passwordToggle = document.getElementById('passwordToggle');
+
+passwordToggle.addEventListener('click', () => {
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    passwordToggle.textContent = '🙈';
+  } else {
+    passwordInput.type = 'password';
+    passwordToggle.textContent = '👁️';
+  }
+});
+
+/* Login form */
+const loginForm = document.getElementById('loginForm');
+const usernameInput = document.getElementById('username');
+const usernameError = document.getElementById('usernameError');
+const passwordError = document.getElementById('passwordError');
+const loginContainer = document.getElementById('loginContainer');
+const loadingOverlay = document.getElementById('loadingOverlay');
+
+loginForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  usernameError.classList.remove('show');
+  passwordError.classList.remove('show');
+  
+  const username = usernameInput.value.trim().toUpperCase();
+  const password = passwordInput.value;
+  
+  if (!VALID_USERS[username]) {
+    usernameError.textContent = '❌ User not found';
+    usernameError.classList.add('show');
+    usernameInput.focus();
+    return;
+  }
+  
+  if (VALID_USERS[username] !== password) {
+    passwordError.textContent = '❌ Please check your password';
+    passwordError.classList.add('show');
+    passwordInput.focus();
+    return;
+  }
+  
+  // Show loading and blur background
+  loginContainer.classList.add('blur');
+  loadingOverlay.classList.add('active');
+  
+  // Loading for 1-1.5 seconds
+  const loadingTime = 1000 + Math.random() * 500;
+  setTimeout(() => {
+    loadingOverlay.classList.remove('active');
+    loginContainer.classList.add('exploding');
+    
+    setTimeout(() => {
+      loginContainer.style.display = 'none';
+      startParticleAnimation();
+    }, 300);
+  }, loadingTime);
+});
+
+/* Particle animation */
+const particleCanvas = document.getElementById('particleCanvas');
+const pCtx = particleCanvas.getContext('2d', { alpha: true });
+let pDPR = Math.max(1, window.devicePixelRatio || 1);
+
+function setParticleSize() {
+  pDPR = Math.max(1, window.devicePixelRatio || 1);
+  particleCanvas.width = Math.floor(window.innerWidth * pDPR);
+  particleCanvas.height = Math.floor(window.innerHeight * pDPR);
+  particleCanvas.style.width = window.innerWidth + 'px';
+  particleCanvas.style.height = window.innerHeight + 'px';
+  pCtx.setTransform(pDPR, 0, 0, pDPR, 0, 0);
+}
+
+let particles = [];
+const PARTICLE_COUNT = 3500;
+let animationStartTime = 0;
+let rotationAngle = 0;
+
+function startParticleAnimation() {
+  setParticleSize();
+  particleCanvas.classList.add('active');
+  
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const radius = Math.min(window.innerWidth, window.innerHeight) * 0.25;
+  
+  // Create particles in 3D sphere
+  particles = [];
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const phi = Math.acos(-1 + (2 * i) / PARTICLE_COUNT);
+    const theta = Math.sqrt(PARTICLE_COUNT * Math.PI) * phi;
+    
+    const x = radius * Math.cos(theta) * Math.sin(phi);
+    const y = radius * Math.sin(theta) * Math.sin(phi);
+    const z = radius * Math.cos(phi);
+    
+    particles.push({
+      x3d: x,
+      y3d: y,
+      z3d: z,
+      x: cx,
+      y: cy,
+      size: Math.random() * 2 + 0.5,
+      color: Math.random() > 0.5 ? '#ff69b4' : '#ffc0cb',
+      targetX: 0,
+      targetY: 0,
+      sphereX: x,
+      sphereY: y,
+      sphereZ: z
+    });
+  }
+  
+  animationStartTime = Date.now();
+  animateParticles();
+}
+
+function animateParticles() {
+  const elapsed = Date.now() - animationStartTime;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const cx = w / 2;
+  const cy = h / 2;
+  
+  pCtx.clearRect(0, 0, w, h);
+  
+  // Phase 1: Sphere (0-3000ms)
+  if (elapsed < 3000) {
+    rotationAngle += 0.008;
+    
+    for (let p of particles) {
+      // Rotate sphere
+      const cosA = Math.cos(rotationAngle);
+      const sinA = Math.sin(rotationAngle);
+      
+      const x = p.sphereX * cosA - p.sphereZ * sinA;
+      const z = p.sphereX * sinA + p.sphereZ * cosA;
+      const y = p.sphereY;
+      
+      // Project to 2D
+      const scale = 300 / (300 + z);
+      p.x = cx + x * scale;
+      p.y = cy + y * scale;
+      
+      pCtx.beginPath();
+      pCtx.arc(p.x, p.y, p.size * scale, 0, Math.PI * 2);
+      pCtx.fillStyle = p.color;
+      pCtx.fill();
+    }
+  }
+  // Phase 2: Form AURORA text (3000-5000ms)
+  else if (elapsed < 5000) {
+    if (elapsed >= 3000 && elapsed < 3050 && !particles[0].hasTarget) {
+      setTextTargets();
+    }
+    
+    // Smooth transition to text
+    for (let p of particles) {
+      if (p.targetX && p.targetY) {
+        p.x += (p.targetX - p.x) * 0.08;
+        p.y += (p.targetY - p.y) * 0.08;
+      }
+      
+      pCtx.beginPath();
+      pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      pCtx.fillStyle = p.color;
+      pCtx.fill();
+    }
+  }
+  // Phase 3: Hold text and redirect (after 5000ms)
+  else {
+    // Keep showing AURORA text
+    for (let p of particles) {
+      pCtx.beginPath();
+      pCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      pCtx.fillStyle = p.color;
+      pCtx.fill();
+    }
+    
+    // Redirect after 2 more seconds (at 7000ms total)
+    if (elapsed >= 7000) {
+      window.location.href = 'https://aurorapresents.github.io/log/main.html';
+      return;
+    }
+  }
+  
+  requestAnimationFrame(animateParticles);
+}
+
+function setTextTargets() {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const fontSize = Math.min(window.innerWidth * 0.2, 120);
+  
+  pCtx.font = `bold ${fontSize}px -apple-system, sans-serif`;
+  pCtx.textAlign = 'center';
+  pCtx.textBaseline = 'middle';
+  pCtx.fillStyle = '#fff';
+  pCtx.fillText('AURORA', cx, cy);
+  
+  const imageData = pCtx.getImageData(0, 0, window.innerWidth * pDPR, window.innerHeight * pDPR);
+  const pixels = [];
+  
+  for (let y = 0; y < imageData.height; y += 3) {
+    for (let x = 0; x < imageData.width; x += 3) {
+      const i = (y * imageData.width + x) * 4;
+      if (imageData.data[i + 3] > 128) {
+        pixels.push({ x: x / pDPR, y: y / pDPR });
+      }
+    }
+  }
+  
+  // Shuffle
+  for (let i = pixels.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pixels[i], pixels[j]] = [pixels[j], pixels[i]];
+  }
+  
+  for (let i = 0; i < particles.length; i++) {
+    if (i < pixels.length) {
+      particles[i].targetX = pixels[i].x;
+      particles[i].targetY = pixels[i].y;
+      particles[i].hasTarget = true;
+    }
+  }
+  
+  pCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+window.addEventListener('resize', () => {
+  if (particleCanvas.classList.contains('active')) {
+    setParticleSize();
+  }
+});
+</script>
+</body>
+</html>  display: none;
+  animation: shake 0.4s ease;
+}
+
+.error-message.show {
+  display: block;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}

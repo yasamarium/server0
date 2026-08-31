@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
+<title>Flappy Static+ — StaticQuasar931</title>
+<meta name="description" content="Flappy Static+: Chromebook-friendly Flappy with coins, shop, power-ups, smart bot (secret 2143), themes, seeded runs, stats, and share cards.">
+<style>
+  :root{
+    --bg1:#0b0f1a; --bg2:#121a2b; --text:#eaf3ff; --muted:#98a4b3;
+    --accent:#7cf4ff; --accent2:#ff7cf1; --pipe:#2bdc6c; --ring:#ffd36b; --danger:#ff4d6d;
+    --coin:#ffda6b; --ok:#2bdc6c; --good:#36de7a; --good2:#25cc6b;
+  }
+  [data-theme="light"]{
+    --bg1:#eaf1ff; --bg2:#dfe8ff; --text:#0b1020; --muted:#35425a;
+    --accent:#007aff; --accent2:#b000ff; --pipe:#36c877; --ring:#ff9f1a; --coin:#ffb703;
+  }
+  [data-theme="static"]{
+    --bg1:#111214; --bg2:#0a0b0d; --text:#f0f6ff; --muted:#9aa8bf; --accent:#a0ffea; --accent2:#ff9df3; --pipe:#3dd17a; --ring:#ffd36b;
+  }
+
+  html,body{
+    margin:0;height:100%;
+    background: radial-gradient(1200px 700px at 70% -10%, #1b2640 0%, var(--bg1) 40%, #070a10 100%);
+    color:var(--text); font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    user-select:none; touch-action:manipulation;
+  }
+  #wrap{position:fixed; inset:0; display:grid; grid-template-rows:auto 1fr auto;}
+  header,footer{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 12px; background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.0)); z-index:8
+  }
+  header a.brand{display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:var(--accent); font-weight:800}
+  header a.brand .spark{width:10px;height:10px;border-radius:50%;
+    background: radial-gradient(circle at 30% 30%, #fff 0 20%, var(--accent) 30% 60%, transparent 70%);
+    box-shadow: 0 0 8px var(--accent), 0 0 18px var(--accent); animation: twinkle 2.2s ease-in-out infinite alternate;}
+  @keyframes twinkle{0%{transform:scale(.8);opacity:.7}100%{transform:scale(1.25);opacity:1}}
+
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+  .row-center{justify-content:center}
+  .btn{
+    appearance:none; border:0; border-radius:14px; padding:10px 14px; font-weight:800; cursor:pointer;
+    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    color:var(--text); box-shadow: 0 8px 24px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.06);
+    transition: transform .06s ease, box-shadow .2s ease, background .2s ease, filter .2s ease; font-size:13px;
+    text-align:center;
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 10px 28px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.1)}
+  .btn:active{transform:translateY(1px) scale(.98)}
+  .btn-pill{border-radius:999px}
+  .btn-danger{background:linear-gradient(180deg, rgba(255,77,109,.3), rgba(255,77,109,.08));}
+  .btn-ghost{background:transparent; border:1px dashed rgba(255,255,255,.16)}
+  .btn-disabled{opacity:.5; pointer-events:none; filter:grayscale(.4)}
+  .btn-success{
+    background:linear-gradient(180deg, rgba(54,222,122,.85), rgba(37,204,107,.65));
+    color:#04140a; box-shadow: 0 8px 24px rgba(56,213,94,.25), inset 0 0 0 1px rgba(56,213,94,.35)
+  }
+  .btn-wide{min-width:170px}
+
+  .toggle{display:inline-flex; align-items:center; gap:6px; font-size:13px;color:var(--muted)}
+  .toggle input, .toggle select{accent-color:var(--accent)}
+  #game{display:block; width:100vw; height:100vh; background:transparent; touch-action:none; outline:none}
+
+  /* overlays/panels */
+  #overlay{
+    position:absolute; inset:0; display:grid; place-items:center; z-index:7;
+    background: rgba(0,0,0,.0);
+  }
+  #overlay.hidden{display:none}
+  .panel{
+    pointer-events:auto; backdrop-filter: blur(8px);
+    background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04));
+    border-radius:20px; padding:22px; box-shadow: 0 20px 60px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.08);
+    max-width:min(720px, 94vw); position:relative;
+  }
+  .panel.small{max-width:360px}
+  .title{font-size:28px; font-weight:900; letter-spacing:.2px; margin:0 0 8px}
+  .subtitle{font-size:14px; color:var(--muted); margin:0 0 16px}
+  .kbd{font-family: ui-monospace, Menlo, Consolas, monospace; font-size:12px; padding:4px 8px; border-radius:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.06)}
+  .pill{font-size:12px; padding:4px 10px; border-radius:999px; background:rgba(124,244,255,.14); color:var(--accent); border:1px solid rgba(124,244,255,.25); font-weight:800; letter-spacing:.2px}
+
+  /* statbar + xp (BOTTOM) */
+  .statbar{
+    position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+    display:flex; gap:10px; z-index:6; pointer-events:none; flex-wrap:wrap; justify-content:center
+  }
+  .badge{
+    backdrop-filter:blur(6px); background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+    border-radius:12px; padding:6px 10px; font-weight:900; font-size:13px; color:var(--text);
+    border:1px solid rgba(255,255,255,.08)
+  }
+  .badge .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+  .xpbar{
+    position:absolute; bottom:62px; left:50%; transform:translateX(-50%);
+    width:min(560px, 76vw); height:8px; border-radius:999px; overflow:hidden;
+    background:rgba(255,255,255,.12); box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); z-index:6
+  }
+  .xpfill{height:100%; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); transition:width .2s ease}
+
+  /* diff select row on game over */
+  .diff-row{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; justify-content:center}
+  .home{position:absolute; right:12px; top:12px;}
+
+  /* shop */
+  #shopPanel .shop-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:10px}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); border-radius:14px; padding:12px; border:1px solid rgba(255,255,255,.08)}
+  .card h4{margin:0 0 4px; font-size:15px}
+  .card p{margin:0 0 10px; font-size:12px; color:var(--muted)}
+  .price{font-size:12px; color:var(--ring); font-weight:800}
+
+  /* touch zone */
+  #touchZone{position:absolute; inset:0; z-index:5; pointer-events:auto; background:radial-gradient(800px 320px at 50% 140%, rgba(124,244,255,.08), transparent 60%);}
+  #touchZone.hidden{display:none}
+
+  /* CRT overlay for Static+CRT theme */
+  #crtOverlay{position:fixed; inset:0; pointer-events:none; z-index:6; mix-blend-mode:soft-light; opacity:.25; display:none; background:
+      repeating-linear-gradient(to bottom, rgba(255,255,255,.08) 0px, rgba(255,255,255,.08) 1px, transparent 2px, transparent 3px);}
+  [data-theme="static-crt"] #crtOverlay{display:block}
+
+  /* countdown text */
+  #countdownText{
+    position:fixed; inset:0; display:none; place-items:center; z-index:9; pointer-events:none;
+    color:var(--text); font-weight:900; font-size:min(14vw,120px);
+    text-shadow: 0 8px 40px rgba(0,0,0,.45);
+    opacity:.35;
+  }
+
+  /* stats grid */
+  .stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px}
+  .stat-card{padding:12px; border-radius:12px; background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03)); border:1px solid rgba(255,255,255,.08)}
+  .stat-title{font-size:12px; color:var(--muted); margin:0 0 6px}
+  .stat-value{font-size:20px; font-weight:900; margin:0}
+
+  /* share link text */
+  .share-link{display:block; text-align:center; margin-top:10px}
+</style>
+</head>
+<body data-theme="dark">
+<div id="wrap">
+  <header>
+    <a class="brand" href="https://sites.google.com/view/staticquasar931/gm3z" target="_blank" rel="noopener" title="StaticQuasar931 hub">
+      <span class="spark" aria-hidden="true"></span>
+      <span>StaticQuasar931</span>
+    </a>
+    <div class="row">
+      <button id="btnTheme" class="btn btn-pill" title="Cycle theme">Theme</button>
+      <button id="btnParallax" class="btn btn-pill" title="Toggle parallax background">Parallax</button>
+      <button id="btnShop" class="btn btn-pill" title="Open Shop (Upgrades)">Shop</button>
+      <button id="btnStats" class="btn btn-pill" title="View lifetime stats">Stats</button>
+      <a id="btnFeedback" class="btn btn-pill" href="https://sites.google.com/view/staticquasar931/google-form" target="_blank" rel="noopener" title="Send feedback">Feedback</a>
+      <button id="btnSecret" class="btn btn-pill" title="Enter secret code & extras">Secret</button>
+      <button id="btnPause" class="btn btn-pill" title="Pause (P / ESC)">Pause</button>
+      <button id="btnMute" class="btn btn-pill" title="Mute (M)">Mute</button>
+      <button id="btnLowPower" class="btn btn-pill" title="Toggle low power effects">Low Power</button>
+      <button id="btnReset" class="btn btn-pill btn-danger" title="Reset run (R)">Reset</button>
+    </div>
+  </header>
+
+  <main style="position:relative">
+    <canvas id="game" tabindex="0" aria-label="Flappy Static game canvas"></canvas>
+
+    <div class="xpbar" aria-hidden="true"><div id="xpFill" class="xpfill"></div></div>
+
+    <div class="statbar" id="statbar" style="display:none">
+      <div class="badge" title="Rings gathered towards shield"><span class="dot" style="background:var(--ring)"></span><span id="ringsText">Rings: 0</span></div>
+      <div class="badge" title="Your score this run"><span class="dot"></span><span id="scoreText">Score: 0</span></div>
+      <div class="badge" title="Coins for upgrades"><span class="dot" style="background:var(--coin)"></span><span id="coinText">Coins: 0</span></div>
+      <div class="badge" title="Shield charge remaining"><span class="dot" style="background:var(--accent2)"></span><span id="shieldText">Shield: 0%</span></div>
+      <div class="badge" title="Active effects & time left"><span class="dot" style="background:var(--ok)"></span><span id="effectsText">Effects: None</span></div>
+      <div class="badge" title="Level & XP"><span class="dot" style="background:var(--ok)"></span><span id="levelText">Lvl 1 (100xp)</span></div>
+    </div>
+
+    <!-- Overlay root -->
+    <div id="overlay" class="hidden" aria-live="polite"></div>
+
+    <!-- Countdown layer -->
+    <div id="countdownText">3</div>
+
+    <div id="touchZone" class="hidden" aria-hidden="true"></div>
+  </main>
+
+  <footer>
+    <small>Built for Chromebooks • School-safe • No external libs</small>
+    <small>© StaticQuasar931</small>
+  </footer>
+</div>
+
+<!-- CRT overlay (only visible under Static+CRT theme) -->
+<div id="crtOverlay" aria-hidden="true"></div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* =========================
+     DOM + Panels
+     ========================= */
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: true });
+
+  const overlay = document.getElementById('overlay'); // dynamic panel host
+  const countdownText = document.getElementById('countdownText');
+
+  const btnPause = document.getElementById('btnPause');
+  const btnMute  = document.getElementById('btnMute');
+  const btnLowPower = document.getElementById('btnLowPower');
+  const btnReset = document.getElementById('btnReset');
+  const btnShop = document.getElementById('btnShop');
+  const btnStats = document.getElementById('btnStats');
+  const btnTheme = document.getElementById('btnTheme');
+  const btnSecret = document.getElementById('btnSecret');
+  const btnParallax = document.getElementById('btnParallax');
+
+  const statbar = document.getElementById('statbar');
+  const ringsText = document.getElementById('ringsText');
+  const scoreText = document.getElementById('scoreText');
+  const shieldText = document.getElementById('shieldText');
+  const coinText = document.getElementById('coinText');
+  const effectsText = document.getElementById('effectsText');
+  const levelText = document.getElementById('levelText');
+  const xpFill = document.getElementById('xpFill');
+  const crtOverlay = document.getElementById('crtOverlay');
+
+  // Create panels once
+  const startPanel = document.createElement('div');
+  startPanel.className = 'panel';
+  startPanel.id = 'startPanel';
+  startPanel.innerHTML = `
+    <p class="pill">Flappy Static+</p>
+    <h1 class="title">Flap the Quasar — Collect, Upgrade, Dominate</h1>
+    <p class="subtitle">
+      Space/Enter/Arrows/WASD/Click/Tap to flap. Rings charge the <strong>931 Shield</strong>.
+      Coins fund permanent upgrades. Difficulty ramps from <strong>20%</strong> to <strong>100%</strong> each run.
+    </p>
+    <div class="row" style="margin-bottom:10px">
+      <span class="kbd">Space</span><span class="kbd">Enter</span><span class="kbd">Arrows/WASD</span>
+      <span class="kbd">P</span><small class="subtitle">pause</small>
+      <span class="kbd">ESC</span><small class="subtitle">pause</small>
+      <span class="kbd">M</span><small class="subtitle">mute</small>
+    </div>
+    <div class="row" style="align-items:center; justify-content:space-between">
+      <label class="toggle" title="Lower visual effects for weak devices"><input type="checkbox" id="chkLowPower"> Low power</label>
+      <label class="toggle" title="Start muted"><input type="checkbox" id="chkMute"> Start muted</label>
+      <label class="toggle" title="Visual theme">
+        Theme:
+        <select id="selTheme">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="static">Static (Clean)</option>
+          <option value="static-crt">Static + CRT</option>
+        </select>
+      </label>
+      <label class="toggle" title="Gap size & speed">
+        Difficulty:
+        <select id="selDiff">
+          <option value="easy">Easy</option>
+          <option value="medium" selected>Medium</option>
+          <option value="hard">Hard</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row" style="margin-top:12px; align-items:center;">
+      <label class="toggle" title="Use the same layout every time for practice">
+        <input type="checkbox" id="chkPractice"> Practice Seed Mode
+      </label>
+      <input id="seedInput" placeholder="Type a seed (text or number)" style="flex:1; min-width:180px; padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:var(--text);outline:none" title="Enter a seed or leave blank for random">
+      <button id="btnSeedRandom" class="btn btn-pill" title="Randomize seed">Randomize</button>
+      <button id="btnSeedUse" class="btn btn-success btn-pill" title="Use this seed">Use Seed</button>
+    </div>
+
+    <div class="row" style="margin-top:12px; justify-content:center">
+      <button id="btnStart" class="btn btn-success btn-pill btn-wide" title="Start (Space/Enter)">Start</button>
+      <button id="btnStartShop" class="btn btn-pill" title="Open Shop without starting">Open Shop</button>
+    </div>
+    <p class="subtitle" id="bestLine" style="margin-top:10px"></p>
+  `;
+
+  const gameOverPanel = document.createElement('div');
+  gameOverPanel.className = 'panel';
+  gameOverPanel.id = 'gameOverPanel';
+  gameOverPanel.innerHTML = `
+    <button id="btnHome" class="btn btn-pill home" title="Back to home">Home</button>
+    <h2 class="title" style="margin-bottom:6px">Run Complete</h2>
+    <p class="subtitle" id="scoreLine"></p>
+    <div class="row row-center" style="margin-top:8px">
+      <button id="btnAgain" class="btn btn-success btn-pill btn-wide" title="Play again (Space/Enter)">Play Again</button>
+      <button id="btnShare" class="btn btn-pill btn-wide" title="Copy your score message">Copy Share Text</button>
+      <button id="btnShareCard" class="btn btn-pill btn-wide" title="Generate a share image">Share Card</button>
+    </div>
+    <a id="shareAnchor" class="share-link" href="https://sites.google.com/view/staticquasar931/gm3z" target="_blank" rel="noopener">Play Flappy Static+ (StaticQuasar931)</a>
+    <div class="row row-center" style="margin-top:10px">
+      <button id="btnCopySeed" class="btn btn-pill" title="Copy run seed to clipboard">Copy Seed</button>
+    </div>
+    <div class="diff-row" title="Switch difficulty for next run">
+      <button class="btn btn-pill" id="diffEasy">Easy</button>
+      <button class="btn btn-pill" id="diffMedium">Medium</button>
+      <button class="btn btn-pill" id="diffHard">Hard</button>
+    </div>
+    <p class="subtitle" id="deathMsg" style="text-align:center; margin-top:10px;"></p>
+  `;
+
+  const shopPanel = document.createElement('div');
+  shopPanel.className = 'panel';
+  shopPanel.id = 'shopPanel';
+  shopPanel.innerHTML = `
+    <h2 class="title">Shop & Upgrades</h2>
+    <p class="subtitle">Permanent upgrades saved on this device. Costs scale. Make it fair, make it fun.</p>
+    <div class="row" style="margin:6px 0 12px">
+      <span class="badge"><span class="dot" style="background:var(--coin)"></span>Coins: <strong id="shopCoins">0</strong></span>
+      <span class="badge">Level: <strong id="shopLevel">1</strong></span>
+    </div>
+    <div class="shop-grid">
+      <div class="card" title="+10% EXP per level">
+        <h4>EXP Booster</h4>
+        <p>+10% EXP gain per level (all modes).</p>
+        <div class="row"><span class="price" id="price_exp">Cost —</span><button class="btn btn-pill" id="buy_exp" title="Buy EXP Booster">Buy</button></div>
+      </div>
+      <div class="card" title="+10% Score per level">
+        <h4>Score Multiplier</h4>
+        <p>Boost score & coin bonus checks.</p>
+        <div class="row"><span class="price" id="price_score">Cost —</span><button class="btn btn-pill" id="buy_score" title="Buy Score Multiplier">Buy</button></div>
+      </div>
+      <div class="card" title="+10% power-up duration per level">
+        <h4>Power-Up Duration</h4>
+        <p>Longer Shield, Magnet, Slow-Mo, Shrink.</p>
+        <div class="row"><span class="price" id="price_duration">Cost —</span><button class="btn btn-pill" id="buy_duration" title="Buy Duration">Buy</button></div>
+      </div>
+      <div class="card" title="+10% power-up spawn chance per level">
+        <h4>Power-Up Frequency</h4>
+        <p>More power-up drops.</p>
+        <div class="row"><span class="price" id="price_freq">Cost —</span><button class="btn btn-pill" id="buy_freq" title="Buy Frequency">Buy</button></div>
+      </div>
+      <div class="card" title="+6px magnet radius per level">
+        <h4>Magnet Range</h4>
+        <p>Wider coin pull radius.</p>
+        <div class="row"><span class="price" id="price_magnet">Cost —</span><button class="btn btn-pill" id="buy_magnet" title="Buy Magnet Range">Buy</button></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px; justify-content:flex-end">
+      <button class="btn btn-pill" id="closeShop" title="Close shop">Close</button>
+    </div>
+  `;
+
+  const secretPanel = document.createElement('div');
+  secretPanel.className = 'panel';
+  secretPanel.id = 'secretPanel';
+  secretPanel.style.maxWidth = '480px';
+  secretPanel.innerHTML = `
+    <h3 class="title">Secret</h3>
+    <p class="subtitle">Enter the code to unlock Bot mode and coin tool.</p>
+    <div class="row" style="margin-bottom:8px">
+      <input id="secretInput" inputmode="numeric" maxlength="8" placeholder="Enter code"
+        style="padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:var(--text);outline:none"
+        title="Hint: 4 digits">
+      <button id="secretSubmit" class="btn btn-success btn-pill" title="Unlock">Unlock</button>
+    </div>
+    <div id="botControls" style="display:none">
+      <p class="subtitle" style="margin:4px 0 6px">Bot Mode:</p>
+      <div class="row">
+        <button class="btn btn-pill" data-bot="off" title="You control the bird">Off</button>
+        <button class="btn btn-pill" data-bot="auto" title="Smart full-auto (not immortal)">Auto</button>
+      </div>
+      <div class="row" style="margin-top:10px; align-items:center;">
+        <button id="giveCoinBtn" class="btn btn-pill" title="Give yourself +1 coin (2s cooldown)">Give +1 Coin</button>
+        <small id="giveCooldown" class="subtitle" style="min-width:120px;">Ready</small>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px; justify-content:flex-end">
+      <button class="btn btn-pill" id="secretClose" title="Close">Close</button>
+    </div>
+  `;
+
+  const pausePanel = document.createElement('div');
+  pausePanel.className = 'panel small';
+  pausePanel.id = 'pausePanel';
+  pausePanel.innerHTML = `
+    <h3 class="title">Paused</h3>
+    <p class="subtitle">Choose an option.</p>
+    <div class="row row-center">
+      <button id="btnUnpause" class="btn btn-success btn-pill" title="Resume now">Unpause</button>
+      <button id="btnUnpauseDelay" class="btn btn-pill" title="Resume in 3 seconds">Unpause in 3s</button>
+    </div>
+  `;
+
+  const statsPanel = document.createElement('div');
+  statsPanel.className = 'panel';
+  statsPanel.id = 'statsPanel';
+  statsPanel.innerHTML = `
+    <h3 class="title">Lifetime Stats</h3>
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="row" style="margin-top:12px; justify-content:flex-end">
+      <button class="btn btn-pill" id="closeStats" title="Close stats">Close</button>
+    </div>
+  `;
+
+  overlay.appendChild(startPanel);
+  overlay.appendChild(gameOverPanel);
+  overlay.appendChild(shopPanel);
+  overlay.appendChild(secretPanel);
+  overlay.appendChild(pausePanel);
+  overlay.appendChild(statsPanel);
+
+  // Start panel elements
+  const chkLowPower = startPanel.querySelector('#chkLowPower');
+  const chkMute = startPanel.querySelector('#chkMute');
+  const selTheme = startPanel.querySelector('#selTheme');
+  const selDiff = startPanel.querySelector('#selDiff');
+  const btnStart = startPanel.querySelector('#btnStart');
+  const btnStartShop = startPanel.querySelector('#btnStartShop');
+  const bestLine = startPanel.querySelector('#bestLine');
+  const chkPractice = startPanel.querySelector('#chkPractice');
+  const seedInput = startPanel.querySelector('#seedInput');
+  const btnSeedRandom = startPanel.querySelector('#btnSeedRandom');
+  const btnSeedUse = startPanel.querySelector('#btnSeedUse');
+
+  // Game over elements
+  const btnAgain = gameOverPanel.querySelector('#btnAgain');
+  const btnShare = gameOverPanel.querySelector('#btnShare');
+  const btnShareCard = gameOverPanel.querySelector('#btnShareCard');
+  const scoreLine = gameOverPanel.querySelector('#scoreLine');
+  const diffEasy = gameOverPanel.querySelector('#diffEasy');
+  const diffMedium = gameOverPanel.querySelector('#diffMedium');
+  const diffHard = gameOverPanel.querySelector('#diffHard');
+  const btnHome = gameOverPanel.querySelector('#btnHome');
+  const deathMsgEl = gameOverPanel.querySelector('#deathMsg');
+  const btnCopySeed = gameOverPanel.querySelector('#btnCopySeed');
+
+  // Shop elements
+  const shopCoins = shopPanel.querySelector('#shopCoins');
+  const shopLevel = shopPanel.querySelector('#shopLevel');
+  const price_exp = shopPanel.querySelector('#price_exp');
+  const price_score = shopPanel.querySelector('#price_score');
+  const price_duration = shopPanel.querySelector('#price_duration');
+  const price_freq = shopPanel.querySelector('#price_freq');
+  const price_magnet = shopPanel.querySelector('#price_magnet');
+  const buy_exp = shopPanel.querySelector('#buy_exp');
+  const buy_score = shopPanel.querySelector('#buy_score');
+  const buy_duration = shopPanel.querySelector('#buy_duration');
+  const buy_freq = shopPanel.querySelector('#buy_freq');
+  const buy_magnet = shopPanel.querySelector('#buy_magnet');
+  const closeShop = shopPanel.querySelector('#closeShop');
+
+  // Secret elements
+  const secretInput = secretPanel.querySelector('#secretInput');
+  const secretSubmit = secretPanel.querySelector('#secretSubmit');
+  const botControls = secretPanel.querySelector('#botControls');
+  const giveCoinBtn = secretPanel.querySelector('#giveCoinBtn');
+  const giveCooldown = secretPanel.querySelector('#giveCooldown');
+  const secretClose = secretPanel.querySelector('#secretClose');
+
+  // Pause panel elements
+  const btnUnpause = pausePanel.querySelector('#btnUnpause');
+  const btnUnpauseDelay = pausePanel.querySelector('#btnUnpauseDelay');
+
+  // Stats
+  const statsGrid = statsPanel.querySelector('#statsGrid');
+  const closeStats = statsPanel.querySelector('#closeStats');
+
+  /* =========================
+     Game + Profile + Stats
+     ========================= */
+  let W=0, H=0, DPR = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+  let running=false, paused=false, gameOver=false, lowPower=false, muted=false;
+  let lastTime=0, acc=0, dt=1000/60;
+  let parallax=true;
+
+  // panels
+  let basePanel = 'start';
+  let activePanelId = null;
+  let pausedForModal = false;
+  let delayResumeMs = 0;
+
+  // difficulty ramp parameters (deterministic by distance/pipes)
+  const DIFFS = {
+    easy:   { name:'Easy',   gapMul:1.60, speed:0.92, move:false, coinSpawn:1.25, coinValue:1.0, expMult:0.7, rampLen:80, gapShrink:0.18 },
+    medium: { name:'Medium', gapMul:1.00, speed:1.00, move:true,  coinSpawn:1.00, coinValue:1.0, expMult:1.0, rampLen:60, gapShrink:0.22 },
+    hard:   { name:'Hard',   gapMul:0.68, speed:1.16, move:true,  coinSpawn:1.35, coinValue:1.35, expMult:1.5, rampLen:45, gapShrink:0.28, wind:true }
+  };
+  let difficulty = localStorage.getItem('fs_diff') || 'medium';
+
+  const BASE = {
+    G: 0.00095, FLAP: -0.38, SCROLL: 0.18,
+    GAP_MIN: 110, GAP_MAX: 160,
+    PIPE_W: 66, PIPE_DIST: 280,
+    RING_R: 10, SHIELD_NEED: 3, SHIELD_TIME: 4000,
+    FLOOR_H: 92
+  };
+
+  const THEMES = ['dark','light','static','static-crt'];
+  function setTheme(t){
+    document.body.setAttribute('data-theme', t);
+    localStorage.setItem('fs_theme', t);
+    crtOverlay.style.display = (t==='static-crt') ? 'block' : 'none';
+  }
+
+  // profile & upgrades (cheaper starts)
+  const profile = {
+    coins: 0, xp: 0, level: 1, best: 0,
+    theme: localStorage.getItem('fs_theme') || 'dark',
+    botUnlocked: localStorage.getItem('fs_botU')==='1',
+    botMode: (localStorage.getItem('fs_botM')||'off')==='assist' ? 'off' : (localStorage.getItem('fs_botM')||'off'),
+    upgrades: JSON.parse(localStorage.getItem('fs_up')||'{"exp":0,"score":0,"duration":0,"freq":0,"magnet":0}')
+  };
+  setTheme(profile.theme);
+
+  // stats
+  const defaultStats = {
+    runs:0, totalScore:0, best:0, totalTimeMs:0,
+    coinsSpawned:0, coinsCollected:0,
+    ringsSpawned:0, ringsCollected:0,
+    puSpawned:0, puCollected:0,
+    winStreak:0, loseStreak:0, bestWinStreak:0, bestLoseStreak:0,
+    currentLowStreak:0, bestLowStreak:0 // consecutive runs with score <5
+  };
+  const stats = JSON.parse(localStorage.getItem('fs_stats')||JSON.stringify(defaultStats));
+
+  const UP = {
+    exp:      { label:'EXP Booster',    base:60,  scale:1.8,  max:10, value:(lvl)=>1+0.10*lvl },
+    score:    { label:'Score Mult',     base:70,  scale:1.95, max:10, value:(lvl)=>1+0.10*lvl },
+    duration: { label:'PU Duration',    base:55,  scale:1.7,  max:10, value:(lvl)=>1+0.10*lvl },
+    freq:     { label:'PU Frequency',   base:60,  scale:1.75, max:10, value:(lvl)=>1+0.10*lvl },
+    magnet:   { label:'Magnet Range',   base:40,  scale:1.7,  max:12, value:(lvl)=>6*lvl }
+  };
+  function costOf(key, lvl){ return Math.floor( UP[key].base * Math.pow(UP[key].scale, lvl) ); }
+  function saveProfile(){
+    localStorage.setItem('fs_up', JSON.stringify(profile.upgrades));
+    localStorage.setItem('fs_theme', document.body.getAttribute('data-theme'));
+    localStorage.setItem('fs_botU', profile.botUnlocked ? '1':'0');
+    localStorage.setItem('fs_botM', profile.botMode);
+    localStorage.setItem('fs_diff', difficulty);
+    localStorage.setItem('flappyStaticPlusCoins', profile.coins);
+    localStorage.setItem('flappyStaticPlusXP', profile.xp);
+    localStorage.setItem('flappyStaticPlusLV', profile.level);
+    localStorage.setItem('flappyStaticBest', profile.best);
+    localStorage.setItem('fs_stats', JSON.stringify(stats));
+  }
+  (()=>{
+    const c = Number(localStorage.getItem('flappyStaticPlusCoins')); if (!Number.isNaN(c)) profile.coins=c;
+    const x = Number(localStorage.getItem('flappyStaticPlusXP')); if (!Number.isNaN(x)) profile.xp=x;
+    const lv = Number(localStorage.getItem('flappyStaticPlusLV')); if (!Number.isNaN(lv)&&lv>0) profile.level=lv;
+    const b = Number(localStorage.getItem('flappyStaticBest')); if (!Number.isNaN(b)) profile.best=b;
+  })();
+
+  function xpReqForLevel(lv){ return Math.floor(100 * Math.pow(1.35, lv-1)); }
+  function addXP(amount){
+    profile.xp += Math.max(0, Math.floor(amount));
+    while (profile.xp >= xpReqForLevel(profile.level)){
+      profile.xp -= xpReqForLevel(profile.level);
+      profile.level++;
+      profile.coins += 5 + Math.floor(profile.level*1.2);
+      toast(`Level Up! Now Level ${profile.level} (+coins)`);
+    }
+  }
+  function xpMultiplier(){ return UP.exp.value(profile.upgrades.exp) * DIFFS[difficulty].expMult; }
+  function scoreMultiplier(){ return UP.score.value(profile.upgrades.score); }
+
+  // run state
+  const bird = { x:0,y:0, vx:0, vy:0, r:14, rot:0, alive:true };
+  let pipes=[], rings=[], coins=[], pickups=[], stars=[], stars2=[], stars3=[];
+  let score=0, ringCount=0, shieldMs=0, timeMs=0, ramp=0.2, pipesPassed=0;
+  let wind = { t:0, vx:0 };
+
+  const active = { magnetMs:0, slowMs:0, shrinkMs:0, scoreMs:0, rocketMs:0, rocketCooldown:0 };
+
+  let audioCtx=null, canAudio=false;
+  function beep(freq=880, len=0.06, vol=0.04){
+    if (muted||!canAudio) return;
+    try{
+      const t = audioCtx.currentTime;
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type='triangle'; o.frequency.setValueAtTime(freq,t);
+      g.gain.setValueAtTime(vol,t);
+      o.connect(g).connect(audioCtx.destination);
+      o.start(t); o.stop(t+len);
+    }catch(e){}
+  }
+
+  // textures
+  const staticImg = new Image(); staticImg.crossOrigin = 'anonymous';
+  staticImg.src = 'https://res.cloudinary.com/dcsrqennd/image/upload/v1754794352/607b720a5748a2ae22b9c2ebc44eb23130e0b023_uendui.jpg';
+  let staticPattern = null;
+  staticImg.onload = ()=>{ try{ staticPattern = ctx.createPattern(staticImg, 'repeat'); }catch(e){ staticPattern = null; } };
+
+  const qrImg = new Image(); qrImg.crossOrigin='anonymous';
+  qrImg.src = 'https://res.cloudinary.com/dcsrqennd/image/upload/v1733694622/frame_1_vmv9y3.png';
+
+  /* =========================
+     Seeded RNG (3 & 4)
+     ========================= */
+  let seededMode = false;
+  let runSeedStr = ''; // display
+  let rng = Math.random; // default
+  function xfnv1a(str){ // 32-bit hash of string
+    let h=2166136261>>>0;
+    for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); }
+    return h>>>0;
+  }
+  function mulberry32(a){ return function(){ let t = a += 0x6D2B79F5; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function setSeed(str){
+    seededMode = true;
+    runSeedStr = (str===''? (Math.random()*1e9>>>0).toString(36): String(str));
+    const h = xfnv1a(runSeedStr);
+    rng = mulberry32(h);
+  }
+  function clearSeed(){ seededMode=false; runSeedStr=''; rng=Math.random; }
+
+  const SRND=(a,b)=> a + (rng()*(b-a));
+  const SChance=(p)=> rng()<p;
+
+  /* =========================
+     Canvas + Utils
+     ========================= */
+  function resize(){
+    DPR = Math.max(1, Math.min(2.5, window.devicePixelRatio || 1));
+    W = Math.floor(window.innerWidth);
+    H = Math.floor(window.innerHeight);
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W+'px'; canvas.style.height = H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+  window.addEventListener('resize', resize, {passive:true});
+  resize();
+
+  function drawCenteredText(str, x, y, size=20, color='#eaf3ff', alpha=1){
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.font = `900 ${size}px system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle = color; ctx.fillText(str, x, y);
+    ctx.restore();
+  }
+  function toast(text, ms=1400){
+    const el = document.createElement('div');
+    el.textContent = text;
+    el.style.position='fixed'; el.style.top='12px'; el.style.left='50%'; el.style.transform='translateX(-50%)';
+    el.style.padding='8px 12px'; el.style.borderRadius='10px';
+    el.style.background='rgba(0,0,0,.55)'; el.style.color='#fff'; el.style.fontWeight='800'; el.style.zIndex=99;
+    el.style.boxShadow='0 8px 24px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.06)';
+    document.body.appendChild(el);
+    setTimeout(()=>{ el.style.transition='opacity .35s ease, transform .35s ease'; el.style.opacity='0'; el.style.transform='translateX(-50%) translateY(-8px)'; }, ms);
+    setTimeout(()=>el.remove(), ms+380);
+  }
+
+  /* =========================
+     Overlay/Panel Manager
+     ========================= */
+  function hideAllPanels(){
+    [startPanel, gameOverPanel, shopPanel, secretPanel, pausePanel, statsPanel].forEach(p=>p.style.display='none');
+  }
+  function showOverlay(){ overlay.classList.remove('hidden'); }
+  function hideOverlay(){ overlay.classList.add('hidden'); }
+  function openPanel(panelId, {pause=true, from='inrun'}={}){
+    activePanelId = panelId;
+    if (from) basePanel = from;
+    if (pause && running && !paused){ pausedForModal = true; togglePause(true); } else { pausedForModal=false; }
+    showOverlay();
+    hideAllPanels();
+    document.getElementById(panelId).style.display='block';
+    statbar.style.display='none';
+  }
+  function closePanel(panelId){
+    if (activePanelId !== panelId) return;
+    activePanelId = null;
+    if (basePanel==='start'){
+      showOverlay(); hideAllPanels(); startPanel.style.display='block'; statbar.style.display='none';
+    } else if (basePanel==='gameover'){
+      showOverlay(); hideAllPanels(); gameOverPanel.style.display='block'; statbar.style.display='none';
+    } else {
+      hideOverlay(); hideAllPanels(); statbar.style.display = (running && !gameOver) ? 'flex' : 'none';
+      if (running && paused && !gameOver && pausedForModal){ togglePause(false); }
+      canvas.focus({preventScroll:true});
+    }
+  }
+  overlay.addEventListener('click', (e)=>{
+    if (e.target === overlay && activePanelId){ closePanel(activePanelId); }
+  });
+
+  /* =========================
+     Difficulty ramp (deterministic)
+     ========================= */
+  function rampPercent(){
+    const d = DIFFS[difficulty];
+    return Math.min(1, pipesPassed / d.rampLen);
+  }
+
+  /* =========================
+     Game Assembly
+     ========================= */
+  function resetGame(){
+    pipes.length=0; rings.length=0; coins.length=0; pickups.length=0; stars.length=0; stars2.length=0; stars3.length=0;
+    score=0; ringCount=0; shieldMs=0; timeMs=0; pipesPassed=0;
+    wind.vx = 0; wind.t = 0;
+
+    bird.x = Math.max(96, W*0.28);
+    bird.y = H*0.42; bird.vx=0; bird.vy=0; bird.alive=true; bird.rot=0;
+
+    const sCount = lowPower ? 60 : 120;
+    for(let i=0;i<sCount;i++){
+      const R = seededMode ? SRND : (a,b)=>a+Math.random()*(b-a);
+      stars.push({ x:R(0,W), y:R(0,H), r:R(0.4,2.2), spd:R(0.02,0.06), tw:R(0,1) });
+    }
+    if (parallax){
+      for(let i=0;i<(lowPower?30:60);i++){
+        const R = seededMode ? SRND : (a,b)=>a+Math.random()*(b-a);
+        stars2.push({ x:R(0,W), y:R(0,H), r:R(0.6,2.6), spd:R(0.03,0.09), tw:R(0,1) });
+        stars3.push({ x:R(0,W), y:R(0,H), r:R(0.8,3.0), spd:R(0.05,0.12), tw:R(0,1) });
+      }
+    }
+
+    // first pipe way sooner
+    let x=W+20;
+    for(let i=0;i<5;i++){ addPipe(x, true); x+=BASE.PIPE_DIST; }
+
+    updateUI();
+  }
+
+  function addPipe(x, initial=false){
+    const diff = DIFFS[difficulty];
+    const baseGap = (seededMode ? SRND(BASE.GAP_MIN, BASE.GAP_MAX) : (BASE.GAP_MIN + Math.random()*(BASE.GAP_MAX-BASE.GAP_MIN)));
+    const shrink = 1 - rampPercent()*diff.gapShrink;
+    const gapH = clamp(baseGap * diff.gapMul * shrink, 90, 999);
+    const margin=40;
+    const R = seededMode ? SRND : (a,b)=>a+Math.random()*(b-a);
+    const gapY = R(margin, H - BASE.FLOOR_H - margin - gapH);
+    const p = { x, gapY, gapH, passed:false, movePhase:(seededMode?SRND(0,Math.PI*2):Math.random()*Math.PI*2), id:Math.random().toString(36).slice(2), broken:false };
+    pipes.push(p);
+
+    if (!initial){
+      if (seededMode ? SChance(0.6) : Math.random()<0.6){
+        rings.push({ x: x+BASE.PIPE_W+40+(seededMode?SRND(0,40):Math.random()*40), y: gapY+gapH*0.5+(seededMode?SRND(-18,18): (Math.random()*36-18)), r: BASE.RING_R, taken:false });
+        stats.ringsSpawned++;
+      }
+      const spawnBoost = UP.freq.value(profile.upgrades.freq) * diff.coinSpawn;
+      const coinChance = 0.35 * spawnBoost;
+      if ((seededMode? SChance(coinChance) : Math.random()<coinChance)){
+        const kind = (seededMode? SChance(0.5) : Math.random()<0.5) ? 'trail':'single';
+        if (kind==='single'){
+          coins.push({ x: x+BASE.PIPE_W+(seededMode?SRND(50,90): (50+Math.random()*40)), y: gapY+gapH*0.5+(seededMode?SRND(-16,16):(Math.random()*32-16)), r:8, v: diff.coinValue, taken:false });
+          stats.coinsSpawned+=1;
+        }else{
+          const n= 3 + ((seededMode? SChance(0.6) : Math.random()<0.6)?2:0);
+          for(let i=0;i<n;i++){
+            coins.push({ x: x+BASE.PIPE_W+(seededMode?SRND(40,100):(40+Math.random()*60))+i*18, y: gapY+gapH*0.5+ (i%2?12:-12), r:8, v: diff.coinValue, taken:false });
+          }
+          stats.coinsSpawned+=n;
+        }
+      }
+      const puChance = 0.12 * UP.freq.value(profile.upgrades.freq);
+      if ((seededMode? SChance(puChance) : Math.random()<puChance)){
+        const kinds = ['shield','magnet','slow','shrink','ghost','scorex','rocket'];
+        const idx = Math.floor((seededMode?SRND(0,kinds.length):Math.random()*kinds.length));
+        const k = kinds[idx];
+        const px = x+BASE.PIPE_W+(seededMode?SRND(60,110):(60+Math.random()*50));
+        const py = gapY+gapH*0.5+(seededMode?SRND(-20,20):(Math.random()*40-20));
+        pickups.push({ x: px, y: py, r:12, kind:k, taken:false, spin:(seededMode?SRND(0,6.28):Math.random()*6.28) });
+        stats.puSpawned++;
+      }
+    }
+  }
+
+  function markDiffButtons(){
+    diffEasy.classList.toggle('btn-success', difficulty==='easy');
+    diffMedium.classList.toggle('btn-success', difficulty==='medium');
+    diffHard.classList.toggle('btn-success', difficulty==='hard');
+  }
+
+  /* =========================
+     Controls
+     ========================= */
+  function flap(){ if (!running || paused || !bird.alive) return; bird.vy = BASE.FLAP; beep(1000, 0.05, 0.05); }
+  function startGame(){
+    // bring toggles
+    if (basePanel==='start'){
+      muted = !!chkMute.checked;
+      lowPower = !!chkLowPower.checked;
+      parallax = !!parallax; // keep current
+      const th = selTheme.value || profile.theme; setTheme(th);
+      difficulty = selDiff.value || difficulty; localStorage.setItem('fs_diff', difficulty);
+
+      // seeds
+      if (chkPractice.checked){
+        setSeed(seedInput.value.trim());
+      } else {
+        clearSeed();
+      }
+    }
+    btnMute.textContent = muted ? 'Unmute' : 'Mute';
+    btnLowPower.textContent = lowPower ? 'Low Power: On' : 'Low Power';
+    btnParallax.textContent = parallax ? 'Parallax: On' : 'Parallax';
+    markDiffButtons();
+
+    if (!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); canAudio = true; }catch(e){ canAudio=false; } }
+
+    basePanel='inrun';
+    hideOverlay(); hideAllPanels();
+    statbar.style.display='flex';
+    document.getElementById('touchZone').classList.toggle('hidden', false);
+    running=true; paused=false; gameOver=false; delayResumeMs = 0; countdownText.style.display='none';
+    lastTime=performance.now(); acc=0;
+    resetGame();
+    loop(lastTime);
+    canvas.focus({preventScroll:true});
+  }
+  function endGame(){
+    // Clear all effects on death
+    shieldMs=0; active.magnetMs=0; active.slowMs=0; active.shrinkMs=0; active.scoreMs=0; active.rocketMs=0; active.rocketCooldown=0;
+
+    bird.alive=false; gameOver=true; running=false;
+    profile.best = Math.max(profile.best, score);
+    stats.best = Math.max(stats.best, Math.floor(score));
+    stats.runs++; stats.totalScore += Math.floor(score); stats.totalTimeMs += timeMs;
+
+    // win/lose streaks (win = score >= 10; low streak = score <5)
+    const s = Math.floor(score);
+    if (s >= 10){ stats.winStreak++; stats.loseStreak=0; stats.bestWinStreak = Math.max(stats.bestWinStreak, stats.winStreak); }
+    else { stats.loseStreak++; stats.winStreak=0; stats.bestLoseStreak = Math.max(stats.bestLoseStreak, stats.loseStreak); }
+    if (s < 5){ stats.currentLowStreak++; stats.bestLowStreak = Math.max(stats.bestLowStreak, stats.currentLowStreak); }
+    else stats.currentLowStreak=0;
+
+    saveProfile();
+
+    scoreLine.textContent = `Score ${Math.floor(score)} • Best ${Math.floor(profile.best)} • Coins ${profile.coins} • Mode ${DIFFS[difficulty].name}${runSeedStr?` • Seed ${runSeedStr}`:''}`;
+    basePanel='gameover';
+    showOverlay(); hideAllPanels(); gameOverPanel.style.display='block';
+    statbar.style.display='none';
+    document.getElementById('touchZone').classList.toggle('hidden', true);
+    deathMsgEl.textContent = randomDeathMessage();
+    beep(220, 0.12, 0.06); beep(160, 0.12, 0.05);
+  }
+
+  const DEATH_LINES = [
+    "You bonked your head too hard.",
+    "Pipe 1 — Bird 0.",
+    "Gravity said hello.",
+    "The floor looked comfy.",
+    "Mind the gap… next time.",
+    "Wing day is not today.",
+    "That pipe was a hugger.",
+    "R.I.P. (Rest In Pipe).",
+    "You discovered the ceiling.",
+    "Oops! Wrong kind of fly.",
+    "Hydration break… permanently.",
+    "Turbulence got you.",
+    "You took the scenic route — into a pipe.",
+    "That wasn’t a coin, that was a corner.",
+    "The gap was shy.",
+    "Bird.exe needs an update.",
+    "Should’ve been a submarine.",
+    "Close! (But still a pipe.)",
+    "At least the music slapped.",
+    "The floor sends its regards."
+  ];
+  function randomDeathMessage(){
+    if (seededMode) { // deterministic but varied: use current rng
+      const idx = Math.floor(SRND(0, DEATH_LINES.length));
+      return DEATH_LINES[idx];
+    } else {
+      return DEATH_LINES[Math.floor(Math.random()*DEATH_LINES.length)];
+    }
+  }
+
+  function togglePause(pauseNow = !paused){
+    if (!running || gameOver) return;
+    paused = pauseNow;
+    btnPause.textContent = paused ? 'Resume' : 'Pause';
+    if (paused){
+      openPanel('pausePanel', {pause:false});
+    }else{
+      hideOverlay(); hideAllPanels();
+    }
+  }
+  function startDelayedResume(){
+    delayResumeMs = 3000;
+    countdownText.style.display = 'grid';
+    closePanel('pausePanel');
+  }
+
+  function toggleMute(){ muted=!muted; btnMute.textContent = muted ? 'Unmute' : 'Mute'; }
+  function softReset(){ if (!running) return; resetGame(); }
+
+  // Buttons + Links
+  btnPause.addEventListener('click', ()=>togglePause(true));
+  btnMute.addEventListener('click', toggleMute);
+  btnLowPower.addEventListener('click', ()=>{ lowPower=!lowPower; btnLowPower.textContent = lowPower ? 'Low Power: On' : 'Low Power'; });
+  btnParallax.addEventListener('click', ()=>{ parallax=!parallax; btnParallax.textContent = parallax ? 'Parallax: On' : 'Parallax'; });
+  btnReset.addEventListener('click', softReset);
+  btnShop.addEventListener('click', ()=>{ openPanel('shopPanel', {pause:true, from: basePanel}); updateShopUI(); });
+  btnStats.addEventListener('click', ()=>{ openPanel('statsPanel', {pause:false, from: basePanel}); renderStats(); });
+  btnTheme.addEventListener('click', ()=>{
+    const cur = document.body.getAttribute('data-theme');
+    const idx = (THEMES.indexOf(cur)+1)%THEMES.length;
+    setTheme(THEMES[idx]); saveProfile();
+  });
+  btnSecret.addEventListener('click', ()=>{ openPanel('secretPanel', {pause:true, from: basePanel}); renderBotControls(); setTimeout(()=>secretInput.focus(), 20); });
+
+  // Start panel
+  btnStart.addEventListener('click', startGame);
+  btnStartShop.addEventListener('click', ()=>{ openPanel('shopPanel', {pause:false, from:'start'}); updateShopUI(); });
+  btnSeedRandom.addEventListener('click', ()=>{
+    seedInput.value = (Math.random()*1e9>>>0).toString(36);
+  });
+  btnSeedUse.addEventListener('click', ()=>{
+    chkPractice.checked = true; toast('Seed ready — press Start');
+  });
+
+  // Game over
+  btnAgain.addEventListener('click', startGame);
+  btnShare.addEventListener('click', ()=>{
+    const url = 'https://sites.google.com/view/staticquasar931/gm3z';
+    const txt = `I scored ${Math.floor(score)} in Flappy Static+ (StaticQuasar931)! Mode: ${DIFFS[difficulty].name}${runSeedStr?` • Seed: ${runSeedStr}`:''} — Try it: ${url}`;
+    navigator.clipboard?.writeText(txt);
+    btnShare.textContent='Copied!'; setTimeout(()=>btnShare.textContent='Copy Share Text', 1400);
+  });
+  btnShareCard.addEventListener('click', generateShareCard);
+  btnCopySeed.addEventListener('click', ()=>{
+    if (!runSeedStr){ toast('No seed for this run'); return; }
+    navigator.clipboard?.writeText(runSeedStr); toast('Seed copied');
+  });
+  diffEasy.onclick = ()=>{ difficulty='easy'; saveProfile(); markDiffButtons(); };
+  diffMedium.onclick = ()=>{ difficulty='medium'; saveProfile(); markDiffButtons(); };
+  diffHard.onclick = ()=>{ difficulty='hard'; saveProfile(); markDiffButtons(); };
+  btnHome.onclick = ()=>{ initStart(); };
+
+  // Pause menu
+  btnUnpause.addEventListener('click', ()=>togglePause(false));
+  btnUnpauseDelay.addEventListener('click', startDelayedResume);
+
+  // Secret
+  let lastGive = 0;
+  function renderBotControls(){
+    botControls.style.display = profile.botUnlocked ? 'block' : 'none';
+    botControls.querySelectorAll('button[data-bot]').forEach(btn=>{
+      btn.onclick=()=>{
+        profile.botMode = btn.getAttribute('data-bot');
+        saveProfile();
+        toast('Bot: '+profile.botMode.toUpperCase());
+      };
+    });
+    updateGiveBtn();
+  }
+  function updateGiveBtn(){
+    const now = Date.now();
+    const left = Math.max(0, 2000 - (now - lastGive));
+    if (left>0){
+      giveCoinBtn.classList.add('btn-disabled');
+      giveCooldown.textContent = `Wait ${Math.ceil(left/1000)}s`;
+    } else {
+      giveCoinBtn.classList.remove('btn-disabled');
+      giveCooldown.textContent = 'Ready';
+    }
+  }
+  setInterval(updateGiveBtn, 200);
+
+  secretPanel.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closePanel('secretPanel'); }});
+  shopPanel.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closePanel('shopPanel'); }});
+  pausePanel.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closePanel('pausePanel'); }});
+  statsPanel.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ closePanel('statsPanel'); }});
+
+  secretClose.addEventListener('click', ()=>closePanel('secretPanel'));
+  secretSubmit.addEventListener('click', onSecretSubmit);
+  secretInput.addEventListener('keydown', e=>{ if (e.key==='Enter') onSecretSubmit(); });
+  function onSecretSubmit(){
+    if (secretInput.value.trim()==='2143'){
+      profile.botUnlocked=true; saveProfile();
+      toast('Bot unlocked! Choose Off or Auto');
+      renderBotControls();
+    }else{
+      toast('Nope. Try again.');
+    }
+  }
+  giveCoinBtn.addEventListener('click', ()=>{
+    const now = Date.now();
+    if (now - lastGive < 2000) return;
+    lastGive = now;
+    profile.coins += 1;
+    saveProfile();
+    updateShopUI();
+    toast('+1 Coin');
+  });
+
+  // Shop UI
+  function setBtnAfford(btn, can){
+    btn.classList.toggle('btn-success', can);
+    btn.classList.toggle('btn-danger', !can);
+  }
+  function updateShopUI(){
+    shopCoins.textContent = profile.coins;
+    shopLevel.textContent = profile.level;
+
+    const entries = [
+      ['exp', buy_exp, price_exp, 'EXP Booster'],
+      ['score', buy_score, price_score, 'Score Multiplier'],
+      ['duration', buy_duration, price_duration, 'Power-Up Duration'],
+      ['freq', buy_freq, price_freq, 'Power-Up Frequency'],
+      ['magnet', buy_magnet, price_magnet, 'Magnet Range']
+    ];
+    for(const [key, btn, priceEl, label] of entries){
+      const lvl = profile.upgrades[key];
+      const cost = costOf(key,lvl);
+      priceEl.textContent = lvl>=UP[key].max ? 'Maxed' : `Cost ${cost}`;
+      const can = lvl<UP[key].max && profile.coins >= cost;
+      setBtnAfford(btn, can);
+      btn.title = lvl>=UP[key].max ? `${label}: Maxed` : `Buy ${label} (Lv ${lvl} → ${lvl+1})`;
+      btn.onclick = ()=>buyUpgrade(key);
+    }
+  }
+  function buyUpgrade(key){
+    const lvl = profile.upgrades[key];
+    if (lvl>=UP[key].max){ toast('Maxed out'); return; }
+    const cost = costOf(key,lvl);
+    if (profile.coins < cost){ toast('Not enough coins'); updateShopUI(); return; }
+    profile.coins -= cost;
+    profile.upgrades[key] = lvl+1;
+    saveProfile();
+    updateShopUI();
+    toast(`${UP[key].label} ➜ Lv.${profile.upgrades[key]}`);
+  }
+  closeShop.onclick = ()=>closePanel('shopPanel');
+
+  /* =========================
+     Drawing
+     ========================= */
+  function drawBackground(ms){
+    const theme = document.body.getAttribute('data-theme');
+    if (!lowPower){
+      const g = ctx.createRadialGradient(W*0.8, H*0.15, 40, W*0.8, H*0.15, Math.min(W,H));
+      g.addColorStop(0, 'rgba(124,244,255,.05)');
+      g.addColorStop(1, 'rgba(124,244,255,0)');
+      ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    }
+    // stars parallax
+    drawStarField(stars, 2, 0.6, ms, BASE.SCROLL*2);
+    if (parallax){
+      drawStarField(stars2, 3, 0.45, ms, BASE.SCROLL*2.8);
+      drawStarField(stars3, 4, 0.35, ms, BASE.SCROLL*3.6);
+    }
+
+    // floor
+    if (theme.startsWith('static') && staticPattern){
+      ctx.save();
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = staticPattern;
+      ctx.translate(0, H-BASE.FLOOR_H);
+      ctx.fillRect(0, 0, W, BASE.FLOOR_H);
+      ctx.restore();
+    } else {
+      ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(0, H-BASE.FLOOR_H, W, BASE.FLOOR_H);
+    }
+    if (!lowPower){
+      ctx.strokeStyle='rgba(124,244,255,0.08)'; ctx.lineWidth=1; ctx.beginPath();
+      const step=18; for(let x= (-(timeMs*BASE.SCROLL)%step); x<W; x+=step){ ctx.moveTo(x, H-BASE.FLOOR_H); ctx.lineTo(x+step, H); }
+      ctx.stroke();
+    }
+  }
+  function drawStarField(field, maxAlpha, twAlpha, ms, base){
+    ctx.save();
+    for(const s of field){
+      s.x -= s.spd * base;
+      if (s.x < -4){ s.x = W + (seededMode?SRND(0,40):Math.random()*40); s.y = (seededMode?SRND(0,H-BASE.FLOOR_H-10):Math.random()*(H-BASE.FLOOR_H-10)); }
+      const tw = lowPower ? 1 : (0.6 + 0.4*Math.sin((ms*0.002 + s.tw)*6.283));
+      ctx.globalAlpha = twAlpha*tw;
+      ctx.fillStyle = '#cfe9ff';
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.globalAlpha=1; ctx.restore();
+  }
+
+  function pipeGradient(x){
+    const theme = document.body.getAttribute('data-theme');
+    if (theme.startsWith('static') && staticPattern){ return staticPattern; }
+    const g = ctx.createLinearGradient(x,0,x+BASE.PIPE_W,0);
+    g.addColorStop(0,'#23c85f'); g.addColorStop(0.5,'#2bdc6c'); g.addColorStop(1,'#37ed78');
+    return g;
+  }
+  function drawPipes(ms){
+    const moving = DIFFS[difficulty].move;
+    for(const p of pipes){
+      let gy = p.gapY;
+      if (moving){
+        const amp = (difficulty==='hard' ? 18 : 10) * (0.6 + 0.4*rampPercent());
+        gy += Math.sin(ms*0.001 + p.movePhase) * amp;
+      }
+      const broken = p.broken;
+
+      ctx.fillStyle='#0d1e13';
+      ctx.fillRect(p.x-2, 0, BASE.PIPE_W+4, gy);
+      ctx.fillRect(p.x-2, gy + p.gapH, BASE.PIPE_W+4, H - BASE.FLOOR_H - (gy + p.gapH));
+
+      ctx.fillStyle = pipeGradient(p.x);
+      ctx.fillRect(p.x, 0, BASE.PIPE_W, gy);
+      ctx.fillRect(p.x, gy + p.gapH, BASE.PIPE_W, H - BASE.FLOOR_H - (gy + p.gapH));
+
+      ctx.fillStyle='rgba(255,255,255,.12)';
+      if (!broken){
+        ctx.fillRect(p.x-1, gy-8, BASE.PIPE_W+2, 8);
+        ctx.fillRect(p.x-1, gy+p.gapH, BASE.PIPE_W+2, 8);
+      } else {
+        ctx.save();
+        ctx.strokeStyle='rgba(255,255,255,.25)'; ctx.lineWidth=2;
+        ctx.beginPath();
+        for(let i=0;i<BASE.PIPE_W+2;i+=8){
+          const j= (Math.sin(i*0.4+ms*0.02)*3);
+          ctx.moveTo(p.x-1+i, gy-6+j);
+          ctx.lineTo(p.x-1+i+4, gy-2-j);
+          ctx.moveTo(p.x-1+i, gy+p.gapH+2+j);
+          ctx.lineTo(p.x-1+i+4, gy+p.gapH+6-j);
+        }
+        ctx.stroke(); ctx.restore();
+      }
+      p._gy = gy;
+    }
+  }
+  function drawRings(ms){
+    for(const r of rings){
+      if (r.taken) continue;
+      const t = ms*0.005;
+      const w = 2 + (lowPower?0.0:(1.0+Math.sin(t*2 + r.x*0.02))*0.5);
+      ctx.lineWidth = 3 + (lowPower?0.0: w*0.6);
+      if (!lowPower){ ctx.shadowBlur=12; ctx.shadowColor='rgba(255,211,107,0.55)'; } else ctx.shadowBlur=0;
+      ctx.beginPath(); ctx.strokeStyle=getComputedStyle(document.body).getPropertyValue('--ring')||'#ffd36b';
+      ctx.arc(r.x, r.y, r.r + Math.sin(t)*1.2, 0, Math.PI*2); ctx.stroke(); ctx.shadowBlur=0;
+    }
+  }
+  function drawCoins(ms){
+    ctx.save();
+    for(const c of coins){
+      if (c.taken) continue;
+      ctx.beginPath();
+      ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--coin')||'#ffda6b';
+      const wob = Math.sin((ms*0.006) + c.x*0.02)*2;
+      ctx.ellipse(c.x, c.y, 9, 9 + wob*0.2, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.35)';
+      ctx.beginPath(); ctx.arc(c.x-3, c.y-3, 3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawPickups(ms){
+    for(const p of pickups){
+      if (p.taken) continue;
+      p.spin += 0.07;
+      const icon = p.kind;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(Math.sin(p.spin)*0.2);
+      ctx.lineWidth=2; ctx.strokeStyle='rgba(255,255,255,.5)';
+      ctx.fillStyle='rgba(124,244,255,.25)';
+      ctx.beginPath(); ctx.arc(0,0, p.r+4, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle='#fff';
+      if (icon==='shield'){ ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.strokeStyle='#7cf4ff'; ctx.stroke(); }
+      else if (icon==='magnet'){ ctx.fillRect(-6,-6,12,12); }
+      else if (icon==='slow'){ ctx.fillRect(-7,-2,14,4); }
+      else if (icon==='shrink'){ ctx.beginPath(); ctx.arc(0,0,5,0,Math.PI*2); ctx.fill(); }
+      else if (icon==='ghost'){ ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fill(); }
+      else if (icon==='scorex'){ ctx.font='900 14px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('2x',0,0); }
+      else if (icon==='rocket'){ ctx.beginPath(); ctx.moveTo(-6,6); ctx.lineTo(0,-8); ctx.lineTo(6,6); ctx.closePath(); ctx.fill(); }
+      ctx.restore();
+    }
+  }
+  function drawBird(ms){
+    ctx.save();
+    ctx.translate(bird.x, bird.y); ctx.rotate(bird.rot);
+    const bodyR = bird.r * (active.shrinkMs>0?0.8:1);
+
+    const grad = ctx.createRadialGradient(-4,-6,4, 0,0, bodyR+4);
+    grad.addColorStop(0,'#fff'); grad.addColorStop(0.3,'#9cf4ff'); grad.addColorStop(1,'#1a8391');
+    ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(0,0,bodyR,0,Math.PI*2); ctx.fill();
+
+    const wingY = Math.sin(ms*0.02)*3; ctx.fillStyle='#e8fbff';
+    ctx.beginPath(); ctx.ellipse(-3, wingY, 8, 5, 0, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle='#08131a'; ctx.beginPath(); ctx.arc(6,-4,3,0,Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--ring')||'#ffd36b';
+    ctx.beginPath(); ctx.moveTo(bodyR-2,-1); ctx.lineTo(bodyR+8,2); ctx.lineTo(bodyR-2,5); ctx.closePath(); ctx.fill();
+
+    if (shieldMs>0){
+      const a = clamp(shieldMs/BASE.SHIELD_TIME,0,1);
+      ctx.strokeStyle=`rgba(124,244,255,${0.25+0.35*a})`; ctx.lineWidth=3+(1-a)*4;
+      ctx.beginPath(); ctx.arc(0,0, bodyR+6+Math.sin(ms*0.02)*2, 0, Math.PI*2); ctx.stroke();
+    }
+    if (active.rocketMs>0){
+      ctx.strokeStyle='rgba(255,100,120,.6)'; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(-bodyR-2, 0); ctx.lineTo(-bodyR-18, Math.sin(ms*0.05)*3); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawHUD(){
+    drawCenteredText(`${Math.floor(score)}`, W/2, 32, 24, getComputedStyle(document.body).getPropertyValue('--text')||'#eaf3ff');
+    if (delayResumeMs>0){
+      const s = Math.ceil(delayResumeMs/1000);
+      drawCenteredText(s.toString(), W/2, H*0.45, Math.min(140, W*0.18), '#ffffff', 0.35);
+    }
+  }
+
+  /* =========================
+     Update / Physics
+     ========================= */
+  function update(ms, step){
+    timeMs = ms;
+
+    // deterministic ramp
+    ramp = 0.2 + 0.8*rampPercent();
+    const diff = DIFFS[difficulty];
+
+    if (diff.wind && !lowPower){
+      wind.t -= step;
+      if (wind.t<=0){
+        wind.t = (seededMode? SRND(3000,7000): (3000+Math.random()*4000));
+        wind.vx = (seededMode? SRND(-0.05,0.05):(Math.random()*0.1-0.05)) * (0.3 + 0.7*ramp);
+      }
+    }else wind.vx = 0;
+
+    const timeScale = (active.slowMs>0) ? 0.55 : 1.0;
+    const dtScaled = step * timeScale;
+
+    bird.vy += BASE.G * dtScaled;
+    bird.y  += bird.vy * dtScaled;
+    bird.rot = clamp(bird.vy*0.06, -0.5, 0.9);
+
+    const speedScale = 0.9 + 0.5 * ramp;
+    const baseSpeed = BASE.SCROLL * diff.speed * speedScale + Math.abs(wind.vx);
+    const speed = baseSpeed * (active.rocketMs>0 ? 2.2 : 1);
+
+    for(const p of pipes){ p.x -= speed * dtScaled; }
+    if (pipes.length && pipes[0].x < -BASE.PIPE_W-10){
+      const removed = pipes.shift();
+      if (removed && removed.passed) pipesPassed++;
+      rings = rings.filter(r=>r.x>-30 && !r.taken);
+      coins = coins.filter(c=>c.x>-30 && !c.taken);
+      pickups = pickups.filter(pk=>pk.x>-30 && !pk.taken);
+      addPipe(pipes[pipes.length-1].x + BASE.PIPE_DIST);
+    }
+    for(const r of rings){ r.x -= speed * dtScaled; }
+    for(const c of coins){ c.x -= speed * dtScaled; }
+    for(const pk of pickups){ pk.x -= speed * dtScaled; }
+
+    const magnetR = (active.magnetMs>0? 90 + UP.magnet.value(profile.upgrades.magnet): 0);
+    if (magnetR>0){
+      for(const c of coins){
+        const dx = c.x - bird.x, dy = c.y - bird.y, d = Math.hypot(dx,dy);
+        if (d < magnetR){
+          const pull = (magnetR - d)*0.0025;
+          c.x -= dx/d * pull * step * 1.2;
+          c.y -= dy/d * pull * step * 1.2;
+        }
+      }
+    }
+
+    const floorY = H - BASE.FLOOR_H;
+    if (bird.y + bird.r > floorY){
+      if (shieldMs>0){ bird.y = floorY-bird.r-1; bird.vy = BASE.FLAP*0.6; shieldMs=0; beep(600,0.06,0.06); }
+      else endGame();
+    }
+    if (bird.y - bird.r < 0){ bird.y = bird.r; bird.vy *= 0.2; }
+
+    for(const p of pipes){
+      if (!p.passed && p.x + BASE.PIPE_W < bird.x){ p.passed=true; score+=1*scoreMultiplier(); addXP(5*xpMultiplier()); beep(760,0.04,0.05); }
+      const gy = p._gy ?? p.gapY;
+      const cr = bird.r*(active.shrinkMs>0?0.8:1);
+      const topHit = circleRectCollide(bird.x, bird.y, cr, p.x, 0, BASE.PIPE_W, gy);
+      const botHit = circleRectCollide(bird.x, bird.y, cr, p.x, gy+p.gapH, BASE.PIPE_W, H-BASE.FLOOR_H-(gy+p.gapH));
+      if (topHit || botHit){
+        if (active.rocketMs>0){ p.broken=true; }
+        else if (active.ghost>0){ active.ghost--; beep(520,0.05,0.06); }
+        else if (shieldMs>0){ shieldMs=0; bird.vy = Math.min(-0.2,bird.vy); beep(520,0.06,0.06); }
+        else endGame();
+      }
+    }
+
+    for(const r of rings){
+      if (r.taken) continue;
+      const rr = (r.r + bird.r - 2)*(active.shrinkMs>0?0.8:1);
+      if (dist2(r.x,r.y,bird.x,bird.y) <= rr*rr){
+        r.taken=true; stats.ringsCollected++;
+        ringCount++;
+        if (ringCount >= BASE.SHIELD_NEED){ ringCount=0; shieldMs = BASE.SHIELD_TIME * UP.duration.value(profile.upgrades.duration); beep(1200,0.12,0.06); }
+        else beep(980,0.05,0.05);
+        addXP(3*xpMultiplier());
+      }
+    }
+
+    for(const c of coins){
+      if (c.taken) continue;
+      const rr = (c.r + bird.r - 4)*(active.shrinkMs>0?0.8:1);
+      if (dist2(c.x,c.y,bird.x,bird.y) <= rr*rr){
+        c.taken=true; stats.coinsCollected++;
+        const value = Math.ceil(c.v * scoreMultiplier());
+        profile.coins += value;
+        addXP(2*xpMultiplier());
+        beep(1040,0.03,0.045);
+      }
+    }
+
+    for(const pk of pickups){
+      if (pk.taken) continue;
+      const rr = (pk.r + bird.r - 2)*(active.shrinkMs>0?0.8:1);
+      if (dist2(pk.x,pk.y,bird.x,bird.y) <= rr*rr){ pk.taken=true; stats.puCollected++; applyPower(pk.kind); }
+    }
+
+    if (shieldMs>0){ shieldMs -= dtScaled; if (shieldMs<0) shieldMs=0; }
+    if (active.magnetMs>0){ active.magnetMs -= dtScaled; if (active.magnetMs<0) active.magnetMs=0; }
+    if (active.slowMs>0){ active.slowMs -= dtScaled; if (active.slowMs<0) active.slowMs=0; }
+    if (active.shrinkMs>0){ active.shrinkMs -= dtScaled; if (active.shrinkMs<0) active.shrinkMs=0; }
+    if (active.scoreMs>0){ active.scoreMs -= dtScaled; if (active.scoreMs<0) active.scoreMs=0; }
+    if (active.rocketMs>0){
+      active.rocketMs -= dtScaled;
+      bird.x += 0.05 * dtScaled * (lowPower?0.6:1);
+      if (active.rocketMs<0) active.rocketMs=0;
+    }
+    if (active.rocketCooldown>0){ active.rocketCooldown -= dtScaled; if (active.rocketCooldown<0) active.rocketCooldown=0; }
+
+    if (profile.botUnlocked && profile.botMode==='auto' && bird.alive){ botThink(dtScaled, speed); }
+
+    updateUI();
+  }
+
+  function updateUI(){
+    ringsText.textContent = `Rings: ${ringCount}/${BASE.SHIELD_NEED}`;
+    scoreText.textContent = `Score: ${Math.floor(score)}`;
+    coinText.textContent = `Coins: ${profile.coins}`;
+    shieldText.textContent = `Shield: ${Math.round((shieldMs/BASE.SHIELD_TIME)*100)}%`;
+    const req = xpReqForLevel(profile.level);
+    levelText.textContent = `Lvl ${profile.level} (${req-profile.xp}xp to ${profile.level+1})`;
+    xpFill.style.width = `${clamp((profile.xp/req)*100,0,100)}%`;
+
+    const parts=[];
+    if (active.magnetMs>0) parts.push(`Magnet ${(active.magnetMs/1000).toFixed(1)}s`);
+    if (active.slowMs>0) parts.push(`Slow ${(active.slowMs/1000).toFixed(1)}s`);
+    if (active.shrinkMs>0) parts.push(`Shrink ${(active.shrinkMs/1000).toFixed(1)}s`);
+    if (active.scoreMs>0) parts.push(`x2 ${(active.scoreMs/1000).toFixed(1)}s`);
+    if (active.rocketMs>0) parts.push(`Rocket ${(active.rocketMs/1000).toFixed(1)}s`);
+    effectsText.textContent = parts.length? `Effects: ${parts.join(' · ')}` : 'Effects: None';
+  }
+
+  /* =========================
+     Power-ups
+     ========================= */
+  function applyPower(kind){
+    const durScale = UP.duration.value(profile.upgrades.duration);
+    if (kind==='shield'){ shieldMs = BASE.SHIELD_TIME * durScale; toast('Shield!'); beep(1200,0.10,0.06); }
+    else if (kind==='magnet'){ active.magnetMs = 3500 * durScale; toast('Magnet!'); }
+    else if (kind==='slow'){ active.slowMs = 3000 * durScale; toast('Slow-Mo!'); }
+    else if (kind==='shrink'){ active.shrinkMs = 3000 * durScale; toast('Shrink!'); }
+    else if (kind==='ghost'){ active.ghost = Math.min(2, active.ghost+1); toast('Ghost charge!'); }
+    else if (kind==='scorex'){ active.scoreMs = 4000 * durScale; toast('Score x2!'); }
+    else if (kind==='rocket'){
+      if (active.rocketCooldown<=0){
+        active.rocketMs = 500 * durScale; active.rocketCooldown = 4000;
+        const next = pipes.find(p=>p.x+BASE.PIPE_W>bird.x-10);
+        if (next) next.broken = true;
+        toast('Rocket Boost!');
+        beep(300,0.08,0.06); beep(900,0.06,0.05);
+      } else { toast('Rocket cooling…'); }
+    }
+  }
+
+  /* =========================
+     Smart Bot (Auto)
+     ========================= */
+  function botThink(step, speed){
+    const next = pipes.find(p=>p.x+BASE.PIPE_W>bird.x-8);
+    if (!next) return;
+    const gy = next._gy ?? next.gapY;
+    const gapCenterY = gy + next.gapH*0.5;
+    const gapTopSafe = gy + 10;
+    const gapBotSafe = gy + next.gapH - 10;
+
+    // Candidate target selection (items in safe corridor)
+    let targetY = gapCenterY;
+    let best = -1;
+    function scoreItem(x,y,weight){
+      const dx = x - bird.x; if (dx<30 || dx>260) return -1;
+      const dy = Math.abs(y - gapCenterY);
+      return weight - dy*0.02 - dx*0.004;
+    }
+    for(const pk of pickups){ if (!pk.taken){ const sc = scoreItem(pk.x, pk.y, 12); if (sc>best){ best=sc; targetY=pk.y; } } }
+    for(const r of rings){ if (!r.taken){ const sc = scoreItem(r.x, r.y, 10); if (sc>best){ best=sc; targetY=r.y; } } }
+    for(const c of coins){ if (!c.taken){ const sc = scoreItem(c.x, c.y, 8);  if (sc>best){ best=sc; targetY=c.y; } } }
+
+    // Predict mouth crossing to time flaps early
+    const toMouth = Math.max(1, (next.x+BASE.PIPE_W - bird.x));
+    const ticksMouth = toMouth / (speed || (BASE.SCROLL*DIFFS[difficulty].speed));
+    const vyM = bird.vy + BASE.G * ticksMouth;
+    const yM = bird.y + vyM * ticksMouth;
+
+    const margin = 6 + (difficulty==='hard'?0:6);
+    const needRiseForTarget = bird.y > targetY + margin;
+    const willHitFloor = (yM + bird.r > H - BASE.FLOOR_H - 4);
+    const willDropBelowGap = (yM > gapBotSafe - 4);
+    const willHitUpper = (yM - bird.r < gapTopSafe + 2);
+
+    // Rocket if necessary (predict imminent wall bonk)
+    if (active.rocketCooldown<=0 && next && (willDropBelowGap || willHitUpper)){
+      // only use if mouth is soon
+      if (toMouth < 90){ applyPower('rocket'); return; }
+    }
+    if (needRiseForTarget || willHitFloor || willDropBelowGap || willHitUpper){ flap(); }
+  }
+
+  /* =========================
+     Math helpers
+     ========================= */
+  function circleRectCollide(cx,cy,cr, rx,ry,rw,rh){
+    const nx = clamp(cx, rx, rx+rw), ny = clamp(cy, ry, ry+rh);
+    const dx=cx-nx, dy=cy-ny;
+    return dx*dx + dy*dy <= cr*cr;
+  }
+  function dist2(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return dx*dx+dy*dy; }
+  const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+  /* =========================
+     Loop
+     ========================= */
+  function loop(t){
+    if (!running && basePanel!=='inrun') return;
+    const now = t;
+    let frame = now - lastTime;
+    if (frame > 80) frame = 80;
+    lastTime = now;
+    acc += frame;
+
+    while (acc >= dt){
+      if (!paused && bird.alive) update(now, dt);
+      acc -= dt;
+    }
+
+    ctx.clearRect(0,0,W,H);
+    drawBackground(now);
+    drawPipes(now);
+    drawRings(now);
+    drawCoins(now);
+    drawPickups(now);
+    drawBird(now);
+    drawHUD();
+
+    if (paused && delayResumeMs>0){
+      delayResumeMs -= frame;
+      if (delayResumeMs <= 0){
+        delayResumeMs = 0;
+        countdownText.style.display='none';
+        togglePause(false);
+      }
+    }
+
+    if (running) requestAnimationFrame(loop);
+  }
+
+  /* =========================
+     Share Card (26)
+     ========================= */
+  async function generateShareCard(){
+    const w=900, h=470;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const g = c.getContext('2d');
+
+    // bg
+    const bg = g.createLinearGradient(0,0,w,h);
+    bg.addColorStop(0,'#0b0f1a'); bg.addColorStop(1,'#121a2b');
+    g.fillStyle=bg; g.fillRect(0,0,w,h);
+
+    // title
+    g.fillStyle='#7cf4ff';
+    g.font='bold 28px system-ui,Segoe UI,Roboto';
+    g.fillText('Flappy Static+ — StaticQuasar931', 24, 42);
+
+    // score block
+    g.fillStyle='#eaf3ff';
+    g.font='900 96px system-ui,Segoe UI,Roboto';
+    g.fillText(String(Math.floor(score)), 24, 150);
+    g.font='bold 20px system-ui,Segoe UI,Roboto';
+    g.fillText(`Best: ${Math.floor(profile.best)} • Mode: ${DIFFS[difficulty].name}${runSeedStr?` • Seed: ${runSeedStr}`:''}`, 26, 180);
+
+    // link
+    const url='https://sites.google.com/view/staticquasar931/gm3z';
+    g.fillStyle='#98a4b3';
+    g.fillText(url, 26, 210);
+
+    // qr
+    try{
+      if (qrImg.complete){
+        const qSize=180;
+        g.drawImage(qrImg, w-qSize-24, h-qSize-24, qSize, qSize);
+        g.fillStyle='#98a4b3'; g.font='bold 14px system-ui';
+        g.fillText('Scan to play', w-qSize-24, h-qSize-30);
+      }
+    }catch(e){}
+
+    // footer
+    g.fillStyle='#98a4b3';
+    g.font='12px system-ui,Segoe UI,Roboto';
+    g.fillText('Share this image! © StaticQuasar931', 24, h-20);
+
+    const a = document.createElement('a');
+    a.download = `flappy_static_plus_${Math.floor(score)}.png`;
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
+
+  /* =========================
+     Stats Panel (17)
+     ========================= */
+  function renderStats(){
+    const spawnedCoins = stats.coinsSpawned|0, collectedCoins=stats.coinsCollected|0;
+    const spawnedRings = stats.ringsSpawned|0, collectedRings=stats.ringsCollected|0;
+    const puSpawn = stats.puSpawned|0, puColl=stats.puCollected|0;
+    const runs = stats.runs|0;
+    const avgScore = runs? (stats.totalScore/runs).toFixed(1): '0.0';
+    const missedCoins = Math.max(0, spawnedCoins - collectedCoins);
+    const missedRings = Math.max(0, spawnedRings - collectedRings);
+    const playTimeMin = Math.floor((stats.totalTimeMs||0)/60000);
+
+    statsGrid.innerHTML = `
+      ${statCard('Runs', runs)}
+      ${statCard('Best Score', stats.best|0)}
+      ${statCard('Average Score', avgScore)}
+      ${statCard('Total Score', stats.totalScore|0)}
+      ${statCard('Play Time (min)', playTimeMin)}
+      ${statCard('Coins Spawned', spawnedCoins)}
+      ${statCard('Coins Collected', collectedCoins)}
+      ${statCard('Coins Missed', missedCoins)}
+      ${statCard('Rings Spawned', spawnedRings)}
+      ${statCard('Rings Collected', collectedRings)}
+      ${statCard('Rings Missed', missedRings)}
+      ${statCard('Power-ups Spawned', puSpawn)}
+      ${statCard('Power-ups Collected', puColl)}
+      ${statCard('Win Streak (≥10)', stats.winStreak|0)}
+      ${statCard('Lose Streak (<10)', stats.loseStreak|0)}
+      ${statCard('Best Win Streak', stats.bestWinStreak|0)}
+      ${statCard('Best Lose Streak', stats.bestLoseStreak|0)}
+      ${statCard('Longest <5 Streak', stats.bestLowStreak|0)}
+    `;
+  }
+  function statCard(title, value){
+    return `<div class="stat-card"><p class="stat-title">${title}</p><p class="stat-value">${value}</p></div>`;
+  }
+  closeStats.addEventListener('click', ()=>closePanel('statsPanel'));
+
+  /* =========================
+     Start / Lifecycle
+     ========================= */
+  function initStart(){
+    const themeSaved = localStorage.getItem('fs_theme') || 'dark';
+    selTheme.value = themeSaved;
+    setTheme(themeSaved);
+    selDiff.value = difficulty;
+    chkPractice.checked = false; seedInput.value = '';
+    bestLine.textContent = profile.best ? `Best: ${Math.floor(profile.best)} • Coins: ${profile.coins} • Level: ${profile.level}` : `New? Try for 10+ to warm up.`;
+    basePanel='start'; activePanelId=null;
+    showOverlay(); hideAllPanels(); startPanel.style.display='block';
+    statbar.style.display='none';
+    document.getElementById('touchZone').classList.toggle('hidden', true);
+    markDiffButtons();
+    resetGame();
+    ctx.clearRect(0,0,W,H);
+    drawBackground(0); drawPipes(0); drawRings(0); drawBird(0);
+    drawCenteredText('Press Space/Enter to Start', W/2, H*0.56, 16, '#98a4b3');
+  }
+
+  window.onbeforeunload = (e)=>{ e.preventDefault(); e.returnValue=''; return ''; };
+
+  function updateTouchOverlay(){
+    const isSmall = Math.max(window.innerWidth, window.innerHeight) < 820 || 'ontouchstart' in window;
+    document.getElementById('touchZone').classList.toggle('hidden', !isSmall);
+  }
+  updateTouchOverlay();
+  window.addEventListener('resize', updateTouchOverlay, {passive:true});
+
+  // Global input
+  const touchZone = document.getElementById('touchZone');
+  const doTap=(ev)=>{ ev.preventDefault(); flap(); };
+  touchZone.addEventListener('pointerdown', doTap, {passive:false});
+  canvas.addEventListener('pointerdown', doTap, {passive:false});
+
+  document.addEventListener('keydown', (e)=>{
+    if (e.repeat) return;
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && (activeEl.tagName==='INPUT' || activeEl.tagName==='TEXTAREA' || activeEl.isContentEditable);
+
+    const isFlapKey =
+      e.code==='Space' || e.code==='Enter' ||
+      e.code==='ArrowUp' || e.code==='ArrowDown' || e.code==='ArrowLeft' || e.code==='ArrowRight' ||
+      e.code==='KeyW' || e.code==='KeyA' || e.code==='KeyS' || e.code==='KeyD';
+
+    if (e.code==='KeyP' || e.code==='Escape'){
+      if (activePanelId){ e.preventDefault(); closePanel(activePanelId); return; }
+      e.preventDefault(); togglePause(!paused); return;
+    }
+    if (e.code==='KeyM'){ toggleMute(); return; }
+    if (e.code==='KeyR'){ softReset(); return; }
+
+    // Space/Enter/WASD/Arrows: Start from Start/GameOver, or flap in-run
+    if (isFlapKey){
+      if (!running && (basePanel==='start' || basePanel==='gameover') && !isTyping){
+        e.preventDefault(); startGame(); return;
+      }
+      if (activePanelId==='pausePanel'){
+        e.preventDefault(); togglePause(false); return;
+      }
+      if (!isTyping){ e.preventDefault(); flap(); }
+      return;
+    }
+  }, {passive:false});
+
+  // Boot
+  initStart();
+
+})(); 
+</script>
+</body>
+</html>

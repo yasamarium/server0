@@ -1,0 +1,444 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.98 0.005 240); /* Off-white #f8f9fa */
+  --foreground: oklch(0.15 0.01 240); /* Near black #121214 */
+  --card: oklch(1 0 0); /* Pure White #ffffff */
+  --card-foreground: oklch(0.15 0.01 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 240);
+  --primary: oklch(0.62 0.22 290); /* Darker purple for light mode contrast */
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.005 240); /* Light iOS Grey #eff1f5 */
+  --secondary-foreground: oklch(0.15 0.01 240);
+  --muted: oklch(0.92 0.005 240);
+  --muted-foreground: oklch(0.45 0.01 240);
+  --accent: oklch(0.62 0.22 290);
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.6 0.18 20);
+  --destructive-foreground: oklch(1 0 0);
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.05);
+  --ring: oklch(0.62 0.22 290 / 30%);
+  --chart-1: oklch(0.62 0.22 290);
+  --chart-2: oklch(0.8 0 0);
+  --chart-3: oklch(0.6 0 0);
+  --chart-4: oklch(0.4 0 0);
+  --chart-5: oklch(0.2 0 0);
+}
+
+.dark {
+  --radius: 1rem;
+  --background: oklch(0 0 0); /* Pure Black */
+  --foreground: oklch(0.96 0 0); /* Pure White/Silver */
+  --card: oklch(0.16 0 0); /* Deep Grey #161616 */
+  --card-foreground: oklch(0.96 0 0);
+  --popover: oklch(0.1 0 0); /* #0a0a0a */
+  --popover-foreground: oklch(0.96 0 0);
+  --primary: oklch(0.72 0.19 290); /* Purple #a78bfa */
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.1 0 0); /* #0a0a0a */
+  --secondary-foreground: oklch(0.96 0 0);
+  --muted: oklch(0.12 0 0);
+  --muted-foreground: oklch(0.7 0 0); /* iOS Grey */
+  --accent: oklch(0.72 0.19 290); /* Purple */
+  --accent-foreground: oklch(0 0 0);
+  --destructive: oklch(0.55 0.18 20); /* Elegant Red */
+  --destructive-foreground: oklch(1 0 0);
+  --border: rgba(255, 255, 255, 0.06);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: oklch(0.72 0.19 290 / 40%);
+  --chart-1: oklch(0.72 0.19 290);
+  --chart-2: oklch(0.8 0 0);
+  --chart-3: oklch(0.6 0 0);
+  --chart-4: oklch(0.4 0 0);
+  --chart-5: oklch(0.2 0 0);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    letter-spacing: -0.011em;
+    touch-action: manipulation;
+  }
+
+  /* GPU-accelerated scrollable containers */
+  [class*="overflow-y-auto"],
+  [class*="overflow-x-auto"] {
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+
+  [class*="overflow-y-auto"]::-webkit-scrollbar,
+  [class*="overflow-x-auto"]::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  [class*="overflow-y-auto"]::-webkit-scrollbar-track,
+  [class*="overflow-x-auto"]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  [class*="overflow-y-auto"]::-webkit-scrollbar-thumb,
+  [class*="overflow-x-auto"]::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 4px;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  button, a, input, textarea, select {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+/* iOS Ultra-Smooth ProMotion Physics & Animations */
+@keyframes spring-scale {
+  0% { transform: scale3d(0.92, 0.92, 1); opacity: 0; }
+  40% { transform: scale3d(1.02, 1.02, 1); opacity: 0.9; }
+  70% { transform: scale3d(0.995, 0.995, 1); opacity: 1; }
+  100% { transform: scale3d(1, 1, 1); opacity: 1; }
+}
+
+@keyframes slide-up {
+  0% { transform: translate3d(0, 16px, 0); opacity: 0; }
+  60% { transform: translate3d(0, -2px, 0); opacity: 1; }
+  100% { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translate3d(0, 4px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes slide-in-right {
+  from { transform: translate3d(100%, 0, 0); opacity: 0.5; }
+  40% { opacity: 1; }
+  to { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+
+@keyframes slide-in-left {
+  from { transform: translate3d(-100%, 0, 0); opacity: 0.5; }
+  40% { opacity: 1; }
+  to { transform: translate3d(0, 0, 0); opacity: 1; }
+}
+
+@keyframes bubble-in {
+  0% { transform: scale3d(0.85, 0.85, 1); opacity: 0; }
+  60% { transform: scale3d(1.03, 1.03, 1); opacity: 1; }
+  100% { transform: scale3d(1, 1, 1); opacity: 1; }
+}
+
+@keyframes draw-checkmark {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes shiver {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-3px, 0, 0); }
+  75% { transform: translate3d(3px, 0, 0); }
+}
+
+.animate-spring-scale {
+  animation: spring-scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.35s cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-bubble-in {
+  animation: bubble-in 0.28s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-shiver {
+  animation: shiver 0.25s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+}
+
+.draw-check {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: draw-checkmark 0.45s cubic-bezier(0.4, 0, 0.2, 1) 0.15s forwards;
+}
+
+.ios-glass {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dark .ios-glass {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+}
+
+.ios-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.dark .ios-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(255, 255, 255, 0.02);
+}
+
+/* Messenger-specific ultra-smooth transitions */
+.msg-contact-item {
+  transition: background-color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.15s ease;
+  will-change: transform;
+}
+.msg-contact-item:active {
+  transform: scale3d(0.97, 0.97, 1);
+}
+
+.msg-bubble {
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.msg-input-bar {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.msg-input-bar:focus-within {
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.08);
+}
+
+.ios-tap-active {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.15s ease, opacity 0.15s ease;
+}
+.ios-tap-active:active {
+  transform: scale3d(0.965, 0.965, 1);
+}
+
+/* Ambient Moving Background Orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.orb-1 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.14), transparent 70%);
+  top: 10%;
+  right: -100px;
+  animation: orbFloat1 25s ease-in-out infinite;
+}
+
+.orb-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12), transparent 70%);
+  bottom: 10%;
+  left: -200px;
+  animation: orbFloat2 30s ease-in-out infinite;
+}
+
+.orb-3 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.08), transparent 70%);
+  top: 50%;
+  right: 10%;
+  animation: orbFloat3 20s ease-in-out infinite;
+}
+
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-60px, 80px) scale(1.1); }
+  66% { transform: translate(40px, -40px) scale(0.95); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(80px, -60px) scale(1.15); }
+}
+
+@keyframes orbFloat3 {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(-50px, 40px); }
+}
+
+/* Smooth Natural Israeli Flag Cloth Wave */
+@keyframes flagWave {
+  0%, 100% {
+    transform: translateY(0px) rotateZ(0deg) skewY(0deg);
+    box-shadow: 0 10px 30px rgba(0, 56, 184, 0.2);
+  }
+  25% {
+    transform: translateY(-4px) rotateZ(0.8deg) skewY(0.8deg);
+    box-shadow: -6px 16px 35px rgba(0, 56, 184, 0.35);
+  }
+  50% {
+    transform: translateY(2px) rotateZ(-0.5deg) skewY(-0.5deg);
+    box-shadow: 0 12px 28px rgba(0, 56, 184, 0.25);
+  }
+  75% {
+    transform: translateY(-2px) rotateZ(0.5deg) skewY(0.5deg);
+    box-shadow: 4px 14px 32px rgba(0, 56, 184, 0.3);
+  }
+}
+
+@keyframes flagRipple {
+  0% {
+    background-position: -300px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+.animate-flag-wave {
+  animation: flagWave 5.5s ease-in-out infinite;
+  transform-origin: left center;
+}
+
+.flag-shimmer {
+  background: linear-gradient(
+    95deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 25%,
+    rgba(0, 40, 150, 0.1) 45%,
+    rgba(255, 255, 255, 0.25) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 600px 100%;
+  animation: flagRipple 4s ease-in-out infinite;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Mobile & PC Desktop Specific Optimizations */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+    width: 100%;
+    min-height: 100dvh;
+  }
+  
+  /* Touch target optimization */
+  button, input, select, a {
+    min-height: 38px;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* PC Desktop Hover & Scale Enhancements */
+  .ios-glass:hover {
+    box-shadow: 0 16px 48px -12px rgba(167, 139, 250, 0.15), 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+  
+  .dark .ios-glass:hover {
+    box-shadow: 0 16px 48px -12px rgba(167, 139, 250, 0.25), 0 2px 6px rgba(255, 255, 255, 0.03);
+  }
+}
+
+

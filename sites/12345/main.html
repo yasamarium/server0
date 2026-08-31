@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Waste Separator - Team Aurora</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #13131a;
+            --bg-tertiary: #1a1a24;
+            --text-primary: #ffffff;
+            --text-secondary: #a8a8b3;
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+            --accent-secondary: #ec4899;
+            --card-bg: rgba(26, 26, 36, 0.85);
+            --shadow: rgba(139, 92, 246, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: #8b5cf6;
+            --accent-light: #a78bfa;
+            --accent-secondary: #ec4899;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: rgba(139, 92, 246, 0.3);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            transition: background 0.5s ease, color 0.5s ease;
+            opacity: 0;
+            animation: fadeIn 1s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .top-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .date-display {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 40px var(--shadow);
+        }
+
+        .theme-toggle .icon {
+            font-size: 22px;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 20px 60px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            margin-bottom: 80px;
+        }
+
+        .hero-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+
+        .team-name {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-top: 20px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 32px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(191, 90, 242, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .section {
+            margin-bottom: 80px;
+            opacity: 0;
+            transform: translateY(30px);
+            animation: slideUp 0.8s ease forwards;
+        }
+
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section:nth-child(2) { animation-delay: 0.2s; }
+        .section:nth-child(3) { animation-delay: 0.3s; }
+        .section:nth-child(4) { animation-delay: 0.4s; }
+
+        h2 {
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 24px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(191, 90, 242, 0.2);
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 48px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .grid-item {
+            background: var(--bg-tertiary);
+            padding: 24px;
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .grid-item:hover {
+            transform: translateY(-3px);
+            background: var(--accent);
+        }
+
+        .grid-item h3 {
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .grid-item p {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .grid-item:hover p {
+            color: white;
+        }
+
+        .process-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .process-step:hover {
+            background: var(--accent);
+            transform: translateX(10px);
+        }
+
+        .step-number {
+            min-width: 40px;
+            height: 40px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .process-step:hover .step-number {
+            background: white;
+            color: var(--accent);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin: 30px 0;
+        }
+
+        th, td {
+            padding: 16px;
+            text-align: left;
+            background: var(--bg-tertiary);
+        }
+
+        th {
+            background: var(--accent);
+            font-weight: 600;
+        }
+
+        th:first-child {
+            border-radius: 12px 0 0 12px;
+        }
+
+        th:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+
+        td:first-child {
+            border-radius: 12px 0 0 12px;
+        }
+
+        td:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            padding: 40px;
+            border-radius: 24px;
+            color: white;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .highlight-box h3 {
+            font-size: 2rem;
+            margin-bottom: 16px;
+        }
+
+        .email-btn {
+            background: #000000;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 30px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-top: 20px;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .email-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), transparent);
+            animation: shine 6s ease-in-out infinite;
+        }
+
+        @keyframes shine {
+            0%, 100% {
+                left: -100%;
+            }
+            50% {
+                left: 100%;
+            }
+        }
+
+        .email-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.6);
+            border-color: var(--accent);
+        }
+
+        .proton-logo {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .email-btn:hover .proton-logo {
+            animation-duration: 1s;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .feature {
+            background: var(--bg-tertiary);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature:hover {
+            background: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-secondary);
+            margin-top: 80px;
+            border-top: 1px solid rgba(191, 90, 242, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 80px 16px 40px;
+            }
+
+            .hero {
+                padding: 40px 16px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .top-header {
+                padding: 16px;
+            }
+
+            .date-display {
+                font-size: 12px;
+                padding: 10px 16px;
+            }
+
+            .theme-toggle {
+                width: 40px;
+                height: 40px;
+                right: 16px;
+            }
+
+            .theme-toggle .icon {
+                font-size: 20px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 12px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-header">
+        <div class="date-display" id="dateDisplay"></div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+            <span class="icon" id="themeIcon">🌸</span>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <div class="hero-icon">🌿</div>
+            <h1>AI Waste Separator</h1>
+            <p class="subtitle">Smart Dustbin Project</p>
+            <div class="team-name">Team Aurora</div>
+            
+            <div class="button-group">
+                <a href="https://aurorapresents.github.io/log/members.html" class="btn" target="_blank">
+                    👥 Team Members
+                </a>
+                <a href="https://aurorapresents.github.io/log/model.html" class="btn" target="_blank">
+                    🌸 3D Model
+                </a>
+            </div>
+        </div>
+
+        <section class="section">
+            <div class="card">
+                <h2>Introduction</h2>
+                <p style="line-height: 1.8; color: var(--text-secondary); font-size: 1.1rem;">
+                    Every day, people throw waste like plastic, paper, food, and metal in the same dustbin. Because of this, everything gets mixed up, and it becomes very hard to recycle. It also makes our surroundings dirty and causes pollution.
+                </p>
+                <p style="line-height: 1.8; color: var(--text-secondary); font-size: 1.1rem; margin-top: 20px;">
+                    To solve this problem, our team made a simple project called <strong style="color: var(--accent);">AI Waste Separator</strong>. This is a smart dustbin that can automatically separate waste into different bins — like plastic, metal, paper, and organic (food) waste. It saves time, keeps us safe from touching garbage, and helps to recycle waste easily.
+                </p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>The Problem</h2>
+            <div class="grid">
+                <div class="grid-item">
+                    <h3>❌ Poor Separation</h3>
+                    <p>People don't separate waste properly</p>
+                </div>
+                <div class="grid-item">
+                    <h3>♻️ No Recycling</h3>
+                    <p>Mixed waste cannot be recycled</p>
+                </div>
+                <div class="grid-item">
+                    <h3>⏱️ Time Consuming</h3>
+                    <p>Manual separation is dirty and takes time</p>
+                </div>
+                <div class="grid-item">
+                    <h3>🗑️ Landfill Crisis</h3>
+                    <p>Landfills are filling up fast</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Our Objectives</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🤖</div>
+                    <h3>Automation</h3>
+                    <p>Automatically separate waste</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✨</div>
+                    <h3>Easy & Clean</h3>
+                    <p>Make waste disposal simple</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Eco-Friendly</h3>
+                    <p>Protect our environment</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🇮🇳</div>
+                    <h3>Swachh Bharat</h3>
+                    <p>Support clean India mission</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="card">
+                <h2>How It Works</h2>
+                <div style="margin-top: 30px;">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <div>
+                            <h3>Detection</h3>
+                            <p style="color: var(--text-secondary);">Waste is dropped inside the dustbin and IR sensor detects it</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <div>
+                            <h3>Metal Check</h3>
+                            <p style="color: var(--text-secondary);">Metal sensor checks if the item is metal</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <div>
+                            <h3>Moisture Analysis</h3>
+                            <p style="color: var(--text-secondary);">Moisture sensor checks for wet/dry waste</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <div>
+                            <h3>Smart Sorting</h3>
+                            <p style="color: var(--text-secondary);">Arduino processes data and opens the right bin</p>
+                        </div>
+                    </div>
+                    <div class="process-step">
+                        <div class="step-number">5</div>
+                        <div>
+                            <h3>Completion</h3>
+                            <p style="color: var(--text-secondary);">Waste falls into correct compartment and flap closes</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Materials Used</h2>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Use</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Arduino board</td>
+                            <td>Controls the system</td>
+                        </tr>
+                        <tr>
+                            <td>IR sensor</td>
+                            <td>Detects when waste is dropped</td>
+                        </tr>
+                        <tr>
+                            <td>Metal sensor</td>
+                            <td>Checks if the item is metal</td>
+                        </tr>
+                        <tr>
+                            <td>Moisture sensor</td>
+                            <td>Checks wet or dry waste</td>
+                        </tr>
+                        <tr>
+                            <td>Servo motor</td>
+                            <td>Moves the flap to correct bin</td>
+                        </tr>
+                        <tr>
+                            <td>Power supply</td>
+                            <td>To run the system</td>
+                        </tr>
+                        <tr>
+                            <td>LCD screen</td>
+                            <td>To show waste type</td>
+                        </tr>
+                        <tr>
+                            <td>Plastic/Cardboard box</td>
+                            <td>Dustbin body</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Applications</h2>
+            <div class="grid">
+                <div class="grid-item">
+                    <h3>🏠 Homes</h3>
+                    <p>Easy waste separation for families</p>
+                </div>
+                <div class="grid-item">
+                    <h3>🏫 Schools</h3>
+                    <p>Educational tool for students</p>
+                </div>
+                <div class="grid-item">
+                    <h3>🏥 Hospitals</h3>
+                    <p>Separate medical and normal waste</p>
+                </div>
+                <div class="grid-item">
+                    <h3>🏙️ Public Places</h3>
+                    <p>Keep cities clean and safe</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Project Cost</h2>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Arduino + Sensors</td>
+                            <td>₹1,200</td>
+                        </tr>
+                        <tr>
+                            <td>Motors + Wires</td>
+                            <td>₹400</td>
+                        </tr>
+                        <tr>
+                            <td>Body material</td>
+                            <td>₹500</td>
+                        </tr>
+                        <tr>
+                            <td>Display + Power</td>
+                            <td>₹300</td>
+                        </tr>
+                        <tr>
+                            <td>Miscellaneous</td>
+                            <td>₹200</td>
+                        </tr>
+                        <tr style="background: var(--accent); color: white; font-weight: 700;">
+                            <td>Total</td>
+                            <td>₹2,500 – ₹3,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Future Plans</h2>
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">☀️</div>
+                    <h3>Solar Power</h3>
+                    <p>Works without electricity</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📱</div>
+                    <h3>App Control</h3>
+                    <p>Monitor via smartphone</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Faster Detection</h3>
+                    <p>Improved sensor accuracy</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">📏</div>
+                    <h3>Larger Version</h3>
+                    <p>For schools and public use</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="highlight-box">
+            <h3>Made for RSBVP 2025–26</h3>
+            <p style="font-size: 1.2rem; margin-bottom: 0;">Rajya Stariya Bal Vigyanik Pradarshini</p>
+            <a href="mailto:aurorapresents@proton.me?subject=Inquiry%20about%20AI%20Waste%20Separator%20Project&body=Hello%20Team%20Aurora,%0A%0AI%20am%20interested%20in%20your%20AI%20Waste%20Separator%20project." class="email-btn">
+                <svg class="proton-logo" viewBox="0 0 32 32" fill="currentColor">
+                    <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2zm0 3c6.065 0 11 4.935 11 11s-4.935 11-11 11S5 22.065 5 16 9.935 5 16 5zm-1 4v9.586l-3.293-3.293-1.414 1.414 5 5a1 1 0 001.414 0l5-5-1.414-1.414L17 18.586V9z"/>
+                </svg>
+                aurorapresents@proton.me
+            </a>
+        </div>
+
+        <section class="section">
+            <div class="card" style="text-align: center;">
+                <h2>Conclusion</h2>
+                <p style="line-height: 1.8; color: var(--text-secondary); font-size: 1.1rem; margin-top: 20px;">
+                    The AI Waste Separator is a simple and smart way to handle waste. It helps separate garbage quickly and safely using sensors and motors. This system reduces human effort, promotes cleanliness, and supports recycling.
+                </p>
+                <p style="line-height: 1.8; color: var(--accent); font-size: 1.2rem; margin-top: 30px; font-weight: 600;">
+                    Small ideas can bring big changes when used the right way.
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p style="font-size: 1.2rem; margin-bottom: 10px;">Thank You! 🙏</p>
+        <p style="color: var(--text-secondary);">© 2025 Team Aurora. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Date Display
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('dateDisplay').textContent = now.toLocaleDateString('en-US', options);
+        }
+        updateDate();
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const body = document.body;
+
+        let theme = 'dark';
+
+        themeToggle.addEventListener('click', () => {
+            if (theme === 'dark') {
+                body.setAttribute('data-theme', 'light');
+                themeIcon.textContent = '🌙';
+                theme = 'light';
+            } else {
+                body.removeAttribute('data-theme');
+                themeIcon.textContent = '🌸';
+                theme = 'dark';
+            }
+        });
+
+        // Smooth scroll reveal
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>

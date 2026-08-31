@@ -1,0 +1,13 @@
+{
+  "static_sites": [
+    {
+      "projectName": "demo-hello",
+      "sourceRepo": "octocat/Hello-World",
+      "url": "https://yasamarium.github.io/server0/sites/demo-hello/",
+      "filesDeployed": 1,
+      "commitSha": "8b7a226b43d0dcae3bbdc96af9275637c61b5128",
+      "deployedAt": "2026-08-31T08:49:52.989Z"
+    }
+  ],
+  "dynamic_slots": {}
+}

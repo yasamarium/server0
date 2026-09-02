@@ -1,1 +1,10 @@
-{"TEST":{"ok":true}}
+{
+  "TEST": {
+    "ok": true
+  },
+  "TEST_CODE": {
+    "status": "verified",
+    "username": "testuser",
+    "expiresAt": 1788349343322
+  }
+}

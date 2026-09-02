@@ -1,10 +1,1 @@
-{
-  "TEST": {
-    "ok": true
-  },
-  "TEST_CODE": {
-    "status": "verified",
-    "username": "testuser",
-    "expiresAt": 1788349343322
-  }
-}
+{"TEST":{"ok":true},"TEST_CODE":{"status":"verified","username":"testuser","expiresAt":1788349343322},"MPDHBRZA":{"code":"MPDHBRZA","identifier":"alidev2026","identifier_type":"username","status":"pending","telegram_user_id":null,"telegram_username":null,"telegram_first_name":null,"error_message":null,"verified_at":null,"createdAt":1788349218271,"expiresAt":1788350118271}}

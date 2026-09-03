@@ -50,5 +50,21 @@
     "uploadCount": 0,
     "storageUsed": 0,
     "tokens": []
+  },
+  {
+    "id": "u_tg_7644980930_mtljqr10",
+    "username": "fatimah770",
+    "telegramId": 7644980930,
+    "telegramUsername": "fatimah770",
+    "firstName": "A",
+    "role": "user",
+    "passwordHash": "3b37584661eb8c061bcd036fbcfa07fcbda77fb37d28c2846a07852ffb9a666c",
+    "avatarUrl": "",
+    "createdAt": "2026-09-03T13:14:08.340Z",
+    "registeredIp": "2409:40e6:19:d108:a45c:b50d:ed7:9029",
+    "country": "IN",
+    "uploadCount": 0,
+    "storageUsed": 0,
+    "tokens": []
   }
 ]

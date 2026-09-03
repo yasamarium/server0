@@ -34,5 +34,21 @@
     "username": "direct_test_user",
     "role": "user",
     "passwordHash": "hash123"
+  },
+  {
+    "id": "u_tg_11223344_mtlj830q",
+    "username": "alidev2026",
+    "telegramId": 11223344,
+    "telegramUsername": "alidev2026",
+    "firstName": "AliDev",
+    "role": "user",
+    "passwordHash": "f61947f17f624ed103e1ed91ee946cdc6236f5dad3ca52fb199f5bb321d1faa1",
+    "avatarUrl": "",
+    "createdAt": "2026-09-03T12:59:37.418Z",
+    "registeredIp": "152.59.151.207",
+    "country": "IN",
+    "uploadCount": 0,
+    "storageUsed": 0,
+    "tokens": []
   }
 ]
